@@ -146,7 +146,7 @@ class CowValidator:
 
         """
 
-        if (age / 30.417) < 12 and pregnancy_status != CowPregnancyChoices.UNAVAILABLE:
+        if round((age / 30.417), 2) < 12 and pregnancy_status != CowPregnancyChoices.UNAVAILABLE:
             raise ValidationError(
                 f"Cows must be 12 months or older to be set as pregnant or open. Current age: {round((age / 30.417), 2)} months old."
             )

@@ -7,9 +7,10 @@ from rest_framework.test import APIClient
 
 from core.choices import CowBreedChoices, CowAvailabilityChoices, CowPregnancyChoices, CowCategoryChoices, \
     CowProductionStatusChoices
-from core.serializers import CowSerializer
+from core.serializers import CowSerializer, InseminatorSerializer
 from core.utils import todays_date
 from reproduction.choices import PregnancyStatusChoices
+from reproduction.serializers import HeatSerializer
 from users.choices import SexChoices
 
 
@@ -173,3 +174,46 @@ def setup_cows():
         "current_production_status": CowProductionStatusChoices.OPEN,
     }
     return general_cow
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def setup_insemination_data():
+    inseminators_data = {
+        "first_name": "Peter",
+        "last_name": "Evance",
+        "phone_number": "+254712345678",
+        "sex": SexChoices.MALE,
+        "company": "Peter's Breeders",
+        "license_number": "ABC-2023",
+    }
+    serializer1 = InseminatorSerializer(data=inseminators_data)
+    assert serializer1.is_valid()
+    inseminator = serializer1.save()
+
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=366),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
+    }
+
+    serializer2 = CowSerializer(data=general_cow)
+    assert serializer2.is_valid()
+    cow = serializer2.save()
+
+    heat_data = {"cow": cow.id}
+
+    serializer3 = HeatSerializer(data=heat_data)
+    assert serializer3.is_valid()
+    serializer3.save()
+
+    insemination_data = {
+        "cow": cow.id,
+        "inseminator": inseminator.id,
+    }
+    return insemination_data

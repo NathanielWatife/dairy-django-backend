@@ -385,7 +385,9 @@ class HeatValidator:
         - `ValidationError`: If the cow is already pregnant.
         """
         if cow.current_pregnancy_status == CowPregnancyChoices.PREGNANT:
-            raise ValidationError("Cow is already pregnant.", code="cow_already_pregnant")
+            raise ValidationError(
+                "Cow is already pregnant.", code="cow_already_pregnant"
+            )
 
     @staticmethod
     def validate_production_status(cow):
@@ -421,7 +423,9 @@ class HeatValidator:
                 timezone.now(),
             )
         ).exists():
-            raise ValidationError("Cow is already in heat within the past day.", code="already_in_heat")
+            raise ValidationError(
+                "Cow is already in heat within the past day.", code="already_in_heat"
+            )
 
     @staticmethod
     def validate_dead(cow):
@@ -449,7 +453,9 @@ class HeatValidator:
         - `ValidationError`: If the cow's gender is not female.
         """
         if cow.gender == SexChoices.MALE:
-            raise ValidationError("Heat can only be observed in female cows.", code="invalid_gender")
+            raise ValidationError(
+                "Heat can only be observed in female cows.", code="invalid_gender"
+            )
 
     @staticmethod
     def validate_within_60_days_after_calving(cow, observation_time):
@@ -467,12 +473,13 @@ class HeatValidator:
 
         if has_pregnancy_records:
             latest_pregnancy = cow.pregnancies.latest("-date_of_calving")
-            if (
-                cow.current_pregnancy_status == CowPregnancyChoices.CALVED
-                and (observation_time.date() - latest_pregnancy.date_of_calving) < timedelta(days=60)
-            ):
-                raise ValidationError("Cow cannot be in heat within 60 days after calving.",
-                                      code="in_heat_after_calving")
+            if cow.current_pregnancy_status == CowPregnancyChoices.CALVED and (
+                observation_time.date() - latest_pregnancy.date_of_calving
+            ) < timedelta(days=60):
+                raise ValidationError(
+                    "Cow cannot be in heat within 60 days after calving.",
+                    code="in_heat_after_calving",
+                )
 
     @staticmethod
     def validate_within_21_days_of_previous_heat(cow, observation_time):
@@ -492,8 +499,10 @@ class HeatValidator:
                 observation_time,
             )
         ).exists():
-            raise ValidationError("Cow cannot be in heat within 21 days of previous heat observation.",
-                                  code="in_heat_within_21_days")
+            raise ValidationError(
+                "Cow cannot be in heat within 21 days of previous heat observation.",
+                code="in_heat_within_21_days",
+            )
 
     @staticmethod
     def validate_min_age(cow):
@@ -507,4 +516,69 @@ class HeatValidator:
         - `ValidationError`: If the cow is not at least 12 months old.
         """
         if cow.age < 365:
-            raise ValidationError("Cow must be at least 12 months old to be in heat.", code="invalid_age_for_heat")
+            raise ValidationError(
+                "Cow must be at least 12 months old to be in heat.",
+                code="invalid_age_for_heat",
+            )
+
+
+class InseminationValidator:
+    """
+    Provides validation methods for the Insemination model.
+
+    Methods:
+    - `validate_already_in_heat(cow, date_of_insemination)`: Validates that the cow is in heat at the time of insemination.
+    - `validate_within_21_days_of_previous_insemination(pk, cow)`: Validates that the cow is not inseminated within 21 days
+      of a previous insemination.
+
+    Each method raises a `ValidationError` with a specific error code and message if the validation fails.
+    """
+
+    @staticmethod
+    def validate_already_in_heat(cow, date_of_insemination):
+        """
+        Validates that the cow is in heat at the time of insemination.
+
+        Args:
+        - `cow` (Cow): The cow associated with the insemination.
+        - `date_of_insemination` (datetime): The date and time of the insemination.
+
+        Raises:
+        - `ValidationError`: If the cow is not in heat at the time of insemination.
+        """
+        from reproduction.models import Heat
+
+        if not Heat.objects.filter(
+            cow=cow,
+            observation_time__range=(
+                date_of_insemination - timedelta(hours=12),
+                date_of_insemination,
+            ),
+        ).exists():
+            raise ValidationError(
+                "Cow must be in heat at the time of insemination.", code="not_in_heat"
+            )
+
+    @staticmethod
+    def validate_within_21_days_of_previous_insemination(pk, cow):
+        """
+        Validates that the cow is not inseminated within 21 days of a previous insemination.
+
+        Args:
+        - `pk`: The primary key of the current insemination record. If None, this is a new insemination.
+        - `cow` (Cow): The cow associated with the insemination.
+
+        Raises:
+        - `ValidationError`: If the cow is inseminated within 21 days of a previous insemination.
+        """
+        if pk is None:
+            if cow.inseminations.filter(
+                date_of_insemination__range=(
+                    timezone.now() - timedelta(days=21),
+                    timezone.now(),
+                )
+            ).exists():
+                raise ValidationError(
+                    "Cow cannot be inseminated within 21 days of a previous insemination.",
+                    code="inseminated_within_21_days",
+                )

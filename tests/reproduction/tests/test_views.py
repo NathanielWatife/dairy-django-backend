@@ -7,7 +7,11 @@ from rest_framework import status
 from core.serializers import CowSerializer
 from core.utils import todays_date
 from reproduction.choices import PregnancyStatusChoices
-from reproduction.serializers import PregnancySerializer, HeatSerializer
+from reproduction.serializers import (
+    PregnancySerializer,
+    HeatSerializer,
+    InseminationSerializer,
+)
 
 
 @pytest.mark.django_db
@@ -269,3 +273,124 @@ class TestHeatViewSet:
         )
 
         assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+class TestInseminationViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_insemination_data):
+        self.client = setup_users["client"]
+
+        self.tokens = {
+            "farm_owner": setup_users["farm_owner_token"],
+            "farm_manager": setup_users["farm_manager_token"],
+            "asst_farm_manager": setup_users["asst_farm_manager_token"],
+            "team_leader": setup_users["team_leader_token"],
+            "farm_worker": setup_users["farm_worker_token"],
+        }
+
+        self.insemination_data = setup_insemination_data
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_201_CREATED),
+            ("farm_manager", status.HTTP_201_CREATED),
+            ("asst_farm_manager", status.HTTP_201_CREATED),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_create_insemination(self, user_type, expected_status):
+        response = self.client.post(
+            reverse("reproduction:insemination-records-list"),
+            data=self.insemination_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+        assert response.status_code == expected_status
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_200_OK),
+            ("farm_manager", status.HTTP_200_OK),
+            ("asst_farm_manager", status.HTTP_200_OK),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_view_insemination_as_farm_owner(self, user_type, expected_status):
+        response = self.client.get(
+            reverse("reproduction:insemination-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+        assert response.status_code == expected_status
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_200_OK),
+            ("farm_manager", status.HTTP_200_OK),
+            ("asst_farm_manager", status.HTTP_200_OK),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_update_insemination_as_farm_owner(self, user_type, expected_status):
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {"success": True, "notes": "Updated notes for insemination"}
+
+        response = self.client.patch(
+            reverse(
+                "reproduction:insemination-records-detail", kwargs={"pk": insemination.id}
+            ),
+            data=update_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+
+        assert response.status_code == expected_status
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_204_NO_CONTENT),
+            ("farm_manager", status.HTTP_204_NO_CONTENT),
+            ("asst_farm_manager", status.HTTP_204_NO_CONTENT),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_delete_insemination_as_farm_owner(self, user_type, expected_status):
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "reproduction:insemination-records-detail", kwargs={"pk": insemination.id}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+
+        assert response.status_code == expected_status
+
+    def test_delete_insemination_associated_with_pregnancy(self):
+        self.insemination_data["success"] = True
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "reproduction:insemination-records-detail", kwargs={"pk": insemination.id}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.tokens['farm_manager']}",
+        )
+        assert (
+            "Deletion not allowed. Insemination record is associated with a pregnancy."
+            in response.data["detail"]
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
