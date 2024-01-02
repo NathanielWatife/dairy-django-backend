@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from core.choices import CowProductionStatusChoices, CowPregnancyChoices, CowAvailabilityChoices
+from core.choices import CowProductionStatusChoices, CowPregnancyChoices
 from health.models import CullingRecord, QuarantineRecord
 
 
@@ -47,6 +47,6 @@ def set_cow_availability_to_quarantined(sender, instance, **kwargs):
     """
     cow = instance.cow
 
-    if cow.availability_status != CowAvailabilityChoices.QUARANTINED:
-        cow.availability_status = CowAvailabilityChoices.QUARANTINED
+    if cow.availability_status != CowProductionChoices.QUARANTINED:
+        cow.availability_status = CowProductionChoices.QUARANTINED
         cow.save()
