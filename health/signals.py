@@ -47,6 +47,6 @@ def set_cow_availability_to_quarantined(sender, instance, **kwargs):
     """
     cow = instance.cow
 
-    if cow.availability_status != CowProductionChoices.QUARANTINED:
-        cow.availability_status = CowProductionChoices.QUARANTINED
+    if cow.availability_status != CowProductionStatusChoices.QUARANTINED:
+        cow.availability_status = CowProductionStatusChoices.QUARANTINED
         cow.save()
