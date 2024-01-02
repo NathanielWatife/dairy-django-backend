@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from reproduction.models import Pregnancy, Heat
+from reproduction.models import Pregnancy, Heat, Insemination
 
 
 class PregnancySerializer(serializers.ModelSerializer):
@@ -54,9 +54,20 @@ class PregnancySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pregnancy
-        fields = ("id", "cow", "start_date", "date_of_calving", "pregnancy_status", "pregnancy_notes",
-                  "calving_notes", "pregnancy_scan_date", "pregnancy_failed_date", "pregnancy_outcome",
-                  "pregnancy_duration", "due_date")
+        fields = (
+            "id",
+            "cow",
+            "start_date",
+            "date_of_calving",
+            "pregnancy_status",
+            "pregnancy_notes",
+            "calving_notes",
+            "pregnancy_scan_date",
+            "pregnancy_failed_date",
+            "pregnancy_outcome",
+            "pregnancy_duration",
+            "due_date",
+        )
 
 
 class HeatSerializer(serializers.ModelSerializer):
@@ -91,3 +102,75 @@ class HeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Heat
         fields = ("id", "cow", "observation_time")
+
+
+class InseminationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Insemination model.
+
+    Fields:
+    - `cow`: A nested serializer field representing the cow associated with the insemination.
+    - `date_of_insemination`: A datetime field representing the date of the insemination.
+    - `pregnancy`: A nested serializer field representing the associated pregnancy.
+    - `inseminator`: A nested serializer field representing the inseminator.
+    - `success`: A boolean field representing the success status of the insemination.
+    - `notes`: A text field representing any additional notes for the insemination.
+    - `days_since_insemination`: A read-only field representing the number of days since the insemination.
+
+    Meta:
+    - `model`: The Insemination model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Usage:
+        Use this serializer to convert Insemination model instances to JSON representations and vice versa.
+
+    Example:
+        ```
+        class Insemination(models.Model):
+            cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name="inseminations")
+            date_of_insemination = models.DateTimeField(default=timezone.now)
+            pregnancy = models.OneToOneField(Pregnancy, on_delete=models.PROTECT, editable=False, null=True)
+            success = models.BooleanField(default=False)
+            notes = models.TextField(null=True)
+            inseminator = models.ForeignKey(Inseminator, on_delete=models.PROTECT, related_name="inseminations_done")
+
+        class InseminationSerializer(serializers.ModelSerializer):
+            days_since_insemination = serializers.ReadOnlyField()
+
+            class Meta:
+                model = Insemination
+                fields = (
+                    "cow",
+                    "date_of_insemination",
+                    "pregnancy",
+                    "inseminator",
+                    "success",
+                    "notes",
+                    "days_since_insemination"
+                )
+        ```
+    """
+
+    def update(self, instance, validated_data):
+        fields_to_exclude = [
+            "cow",
+            "date_of_insemination",
+            "pregnancy",
+            "inseminator",
+            "semen",
+        ]
+        for field in fields_to_exclude:
+            validated_data.pop(field, None)
+        return super().update(instance, validated_data)
+
+    class Meta:
+        model = Insemination
+        fields = (
+            "cow",
+            "date_of_insemination",
+            "pregnancy",
+            "inseminator",
+            "success",
+            "notes",
+            "days_since_insemination",
+        )
