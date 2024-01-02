@@ -1,6 +1,13 @@
 name: Main Tests CI
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
 
 jobs:
   build:
