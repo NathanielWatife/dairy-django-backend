@@ -1,7 +1,7 @@
 from django.db import models
 
 from core.models import Cow
-from health.choices import CullingReasonChoices
+from health.choices import CullingReasonChoices, QuarantineReasonChoices
 from health.validators import WeightRecordValidator
 
 
@@ -70,7 +70,9 @@ class CullingRecord(models.Model):
     - `__str__`: Returns a string representation of the culling record.
     """
 
-    cow = models.OneToOneField(Cow, on_delete=models.CASCADE, related_name="culling_record")
+    cow = models.OneToOneField(
+        Cow, on_delete=models.CASCADE, related_name="culling_record"
+    )
     reason = models.CharField(max_length=35, choices=CullingReasonChoices.choices)
     notes = models.TextField(null=True, max_length=100)
     date_carried = models.DateField(auto_now_add=True)
@@ -80,3 +82,32 @@ class CullingRecord(models.Model):
         Returns a string representation of the culling record.
         """
         return f"CullingRecord for {self.cow} - Reason: {self.reason} - Date: {self.date_carried}"
+
+
+class QuarantineRecord(models.Model):
+    class Meta:
+        get_latest_by = "-start_date"
+
+    cow = models.ForeignKey(
+        Cow, on_delete=models.CASCADE, related_name="quarantine_records"
+    )
+    reason = models.CharField(max_length=35, choices=QuarantineReasonChoices.choices)
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(null=True)
+    notes = models.TextField(null=True, max_length=100)
+
+    def __str__(self):
+        if self.end_date:
+            return f"Quarantine Record of {self.cow.tag_number} from {self.start_date} to {self.end_date}"
+        return f"Quarantine Record of {self.cow.tag_number} from {self.start_date}"
+
+    def clean(self):
+        # Validate the reason for quarantine
+        QuarantineValidator.validate_reason(self.reason, self.cow)
+
+        # Validate the date range for start and end dates
+        QuarantineValidator.validate_date(self.start_date, self.end_date)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)

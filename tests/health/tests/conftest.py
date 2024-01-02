@@ -183,3 +183,34 @@ def setup_culling_record_data():
         "reason": CullingReasonChoices.COST_OF_CARE,
     }
     return culling_data
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def setup_quarantine_record_data():
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=650),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.PREGNANT,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.PREGNANT_NOT_LACTATING,
+    }
+
+    serializer = CowSerializer(data=general_cow)
+    if not serializer.is_valid():
+        print(serializer.errors)
+    assert serializer.is_valid()
+    cow = serializer.save()
+
+    quarantine_data = {
+        "cow": cow.id,
+        "reason": "Calving",
+        "start_date": todays_date - timedelta(days=30),
+        "end_date": todays_date,
+        "notes": "Some notes",
+    }
+
+    return quarantine_data
