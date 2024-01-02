@@ -10,7 +10,7 @@ from health.filters import (
     QuarantineRecordFilterSet,
 )
 from health.models import WeightRecord, CullingRecord, QuarantineRecord
-from health.serializers import WeightRecordSerializer, CullingRecordSerializer
+from health.serializers import WeightRecordSerializer, CullingRecordSerializer, QuarantineRecordSerializer
 from users.permissions import IsFarmManager, IsFarmOwner, IsAssistantFarmManager
 
 
@@ -152,10 +152,6 @@ class CullingRecordViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class QuarantineRecordSerializer:
-    pass
 
 
 class QuarantineRecordViewSet(viewsets.ModelViewSet):

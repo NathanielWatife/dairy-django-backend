@@ -2,7 +2,7 @@ from django.db import models
 
 from core.models import Cow
 from health.choices import CullingReasonChoices, QuarantineReasonChoices
-from health.validators import WeightRecordValidator
+from health.validators import WeightRecordValidator, QuarantineValidator
 
 
 class WeightRecord(models.Model):
