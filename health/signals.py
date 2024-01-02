@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from core.choices import CowProductionStatusChoices, CowPregnancyChoices
-from health.models import CullingRecord
+from health.models import CullingRecord, QuarantineRecord
 
 
 @receiver(post_save, sender=CullingRecord)
@@ -29,3 +29,24 @@ def set_cow_production_status_to_culled(sender, instance, **kwargs):
         cow.current_pregnancy_status = CowPregnancyChoices.UNAVAILABLE
         cow.save()
 
+@receiver(post_save, sender=QuarantineRecord)
+def set_cow_availability_to_quarantined(sender, instance, **kwargs):
+    """
+    Signal handler for setting the availability status of a cow to 'QUARANTINED' after quarantine.
+
+    This signal is triggered after saving a QuarantineRecord instance. It updates the availability
+    status of the associated cow to 'QUARANTINED'.
+
+    Args:
+    - `sender`: The sender of the signal (QuarantineRecord model in this case).
+    - `instance`: The QuarantineRecord instance being saved.
+    - `kwargs`: Additional keyword arguments passed to the signal handler.
+
+    Usage:
+        This signal ensures that after a cow is quarantined, its availability status is updated to 'QUARANTINED'.
+    """
+    cow = instance.cow
+
+    if cow.availability_status != CowProductionChoices.QUARANTINED:
+        cow.availability_status = CowProductionChoices.QUARANTINED
+        cow.save()
