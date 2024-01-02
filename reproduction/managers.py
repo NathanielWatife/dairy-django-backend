@@ -115,3 +115,35 @@ class PregnancyManager(models.Manager):
         - A queryset of stillborn pregnancies.
         """
         return self.filter(pregnancy_outcome=PregnancyOutcomeChoices.STILLBORN)
+
+
+class InseminationManager(models.Manager):
+    """
+    Custom manager for the Insemination model providing utility methods for managing and querying insemination instances.
+
+    Methods:
+    - `days_since_insemination(insemination)`: Calculates and returns the number of days since the insemination.
+
+    Usage:
+        Use this manager to perform operations related to inseminations, such as calculating the duration since insemination.
+
+    Example:
+        ```
+        class Insemination(models.Model):
+            objects = InseminationManager()
+        ```
+    """
+
+    @staticmethod
+    def days_since_insemination(insemination):
+        """
+        Calculates and returns the number of days since the insemination.
+
+        Args:
+        - `insemination`: The insemination object.
+
+        Returns:
+        - The number of days since the insemination.
+        """
+        elapsed_time = todays_date - insemination.date_of_insemination.date()
+        return int(f"{elapsed_time.days}")
