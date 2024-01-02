@@ -1,10 +1,14 @@
 from django.db import models
 from django.utils import timezone
 
-from core.models import Cow
+from core.models import Cow, Inseminator
 from reproduction.choices import PregnancyStatusChoices, PregnancyOutcomeChoices
-from reproduction.managers import PregnancyManager
-from reproduction.validators import PregnancyValidator, HeatValidator
+from reproduction.managers import PregnancyManager, InseminationManager
+from reproduction.validators import (
+    PregnancyValidator,
+    HeatValidator,
+    InseminationValidator,
+)
 
 
 class Pregnancy(models.Model):
@@ -84,7 +88,10 @@ class Pregnancy(models.Model):
             self.date_of_calving,
         )
         PregnancyValidator.validate_pregnancy_status(
-            self.pregnancy_status, self.start_date, self.pregnancy_failed_date, self.pregnancy_duration
+            self.pregnancy_status,
+            self.start_date,
+            self.pregnancy_failed_date,
+            self.pregnancy_duration,
         )
         PregnancyValidator.validate_outcome(
             self.pregnancy_outcome, self.pregnancy_status, self.date_of_calving
@@ -145,6 +152,78 @@ class Heat(models.Model):
         )
         HeatValidator.validate_min_age(self.cow)
         HeatValidator.validate_already_in_heat(self.cow)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class Insemination(models.Model):
+    """
+    Represents a record of insemination in a cow.
+
+    Attributes:
+    - `cow` (Cow): The cow associated with the insemination record.
+    - `pregnancy` (Pregnancy): The pregnancy associated with the insemination record.
+    - `success` (bool): Indicates the success of the insemination.
+    - `notes` (str): Additional notes related to the insemination.
+    - `inseminator` (Inseminator): The inseminator responsible for the insemination.
+    - `date_of_insemination` (datetime): The time of insemination.
+
+    Methods:
+    - `__str__`: Returns a string representation of the insemination record.
+    - `days_since_insemination`: Returns the number of days since the insemination.
+
+    Overrides:
+    - `clean`: Performs validation checks before saving the insemination record.
+    - `save`: Overrides the save method to ensure validation before saving.
+
+    Raises:
+    - `ValidationError`: If insemination record validation fails.
+    """
+
+    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name="inseminations")
+    pregnancy = models.OneToOneField(
+        Pregnancy, on_delete=models.PROTECT, editable=False, null=True
+    )
+    success = models.BooleanField(default=False)
+    notes = models.TextField(null=True)
+    inseminator = models.ForeignKey(
+        Inseminator, on_delete=models.PROTECT, related_name="inseminations_done"
+    )
+    date_of_insemination = models.DateTimeField(default=timezone.now)
+
+    objects = InseminationManager()
+
+    @property
+    def days_since_insemination(self):
+        """
+        Returns the number of days since the insemination.
+        """
+        return Insemination.objects.days_since_insemination(self)
+
+    def __str__(self):
+        """
+        Returns a string representation of the insemination record.
+        """
+        return f"Insemination record for cow {self.cow.tag_number} on {self.date_of_insemination}"
+
+    def clean(self):
+        """
+        Performs validation checks before saving the insemination record.
+
+        Raises:
+        - `ValidationError`: If insemination record validation fails.
+        """
+        InseminationValidator.validate_within_21_days_of_previous_insemination(
+            self.pk, self.cow
+        )
+        InseminationValidator.validate_already_in_heat(
+            self.cow, self.date_of_insemination
+        )
 
     def save(self, *args, **kwargs):
         """
