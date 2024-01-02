@@ -1,12 +1,20 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
-from reproduction.filters import PregnancyFilterSet, HeatFilterSet
-from reproduction.models import Pregnancy, Heat
-from reproduction.serializers import PregnancySerializer, HeatSerializer
+from reproduction.filters import (
+    PregnancyFilterSet,
+    HeatFilterSet,
+    InseminationFilterSet,
+)
+from reproduction.models import Pregnancy, Heat, Insemination
+from reproduction.serializers import (
+    PregnancySerializer,
+    HeatSerializer,
+    InseminationSerializer,
+)
 from users.permissions import (
     IsFarmManager,
     IsFarmOwner,
@@ -203,3 +211,90 @@ class HeatViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class InseminationViewset(viewsets.ModelViewSet):
+    """
+    ViewSet to handle operations related to insemination records.
+
+    Provides CRUD functionality for insemination records.
+
+    Actions:
+    - list: Get a list of insemination records based on applied filters.
+           Returns a 404 response if no insemination records match the provided filters,
+           and a 200 response with an empty list if there are no insemination records in the database.
+    - retrieve: Retrieve details of a specific insemination record.
+    - create: Create a new insemination record.
+    - partial_update & update : Partially update an existing insemination record.
+    - destroy: [Not Allowed] Deletion of insemination records associated with a pregnancy is not allowed.
+
+    Serializer class used for request/response data: InseminationSerializer.
+
+    Permissions:
+    - Accessible to Assistant farm managers, farm managers, and farm owners.
+    - For 'destroy': Not allowed for insemination records associated with a pregnancy.
+
+    """
+
+    queryset = Insemination.objects.all()
+    serializer_class = InseminationSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = InseminationFilterSet
+    ordering_fields = ["date_of_insemination", "success", "cow"]
+    permission_classes = [IsAssistantFarmManager | IsFarmManager | IsFarmOwner]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Insemination records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Insemination records found."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Partially update an existing insemination record.
+
+        Returns:
+        - 200 OK with the updated insemination record.
+
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        [Not Allowed] Deletion of insemination records associated with a pregnancy is not allowed.
+
+        Returns:
+        - 405 Method Not Allowed if associated with a pregnancy.
+        - 204 No Content if not associated with a pregnancy.
+
+        """
+        instance = self.get_object()
+
+        # Check if the insemination record is associated with a pregnancy
+        if instance.pregnancy:
+            raise PermissionDenied(
+                "Deletion not allowed. Insemination record is associated with a pregnancy."
+            )
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
