@@ -44,6 +44,12 @@ class TestCowInventoryModel:
         Cow.objects.create(**self.cow_data)
         assert CowInventory.objects.all().count() == 1
         print(CowInventory.objects.all())
+        Cow.objects.create(**self.cow_data)
+        Cow.objects.create(**self.cow_data)
+        Cow.objects.create(**self.cow_data)
+        Cow.objects.create(**self.cow_data)
+        print(CowInventory.objects.all())
+        assert CowInventory.objects.all().count() == 1
 
     # def test_cow_inventory_creation(self):
     #     cow_inventory = CowInventory.objects.create(
