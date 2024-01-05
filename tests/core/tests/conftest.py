@@ -10,7 +10,7 @@ from core.choices import (
     CowPregnancyChoices,
     CowProductionStatusChoices,
 )
-
+from core.models import CowInventory, CowBreed
 from users.choices import SexChoices
 from core.utils import todays_date
 
@@ -142,10 +142,10 @@ def setup_cows():
     Fixture to create a sample cows object for testing.
     """
 
-    # breed = CowBreed.objects.create(name=CowBreedChoices.JERSEY)
+    breed = CowBreed.objects.create(name=CowBreedChoices.JERSEY)
     general_cow = {
         "name": "General Cow",
-        "breed": {"name": CowBreedChoices.JERSEY},
+        "breed": breed,
         "date_of_birth": todays_date - timedelta(days=370),
         "gender": SexChoices.FEMALE,
         "availability_status": CowAvailabilityChoices.ALIVE,
@@ -167,3 +167,14 @@ def setup_inseminators_data():
         "license_number": "ABCD-01-2024",
     }
     return inseminators_data
+@pytest.fixture
+def initial_cow_inventory():
+    # Create and return an initial CowInventory for testing
+    return CowInventory.objects.create(
+        pk=1,
+        total_number_of_cows=10,
+        number_of_male_cows=5,
+        number_of_female_cows=5,
+        number_of_sold_cows=2,
+        number_of_dead_cows=1
+    )
