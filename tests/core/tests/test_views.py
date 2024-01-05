@@ -30,7 +30,7 @@ class TestCowBreedViewSet:
             ("farm_worker", status.HTTP_403_FORBIDDEN),
         ],
     )
-   def test_create_cow_breed(self, user_type, expected_status):
+    def test_create_cow_breed(self, user_type, expected_status):
         """
         Test creating a cow breed with different user types.
         """
