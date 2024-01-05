@@ -39,11 +39,11 @@ class TestCowInventoryModel:
     @pytest.fixture(autouse=True)
     def setup(self, setup_cows):
         self.cow_data = setup_cows
-
+        self.cow_data["breed"] = CowBreed.objects.create(name=CowBreedChoices.JERSEY)
     def test_cow_inventory_creation(self):
         # Create a new cow
         Cow.objects.create(**self.cow_data)
-        
+
         # Check if CowInventory is updated
         cow_inventory = CowInventory.objects.first()
         assert cow_inventory.total_number_of_cows == 1
@@ -53,10 +53,8 @@ class TestCowInventoryModel:
         assert cow_inventory.number_of_dead_cows == 0
 
         # Create more cows
-        Cow.objects.create(**self.cow_data)
-        Cow.objects.create(**self.cow_data)
-        Cow.objects.create(**self.cow_data)
-        Cow.objects.create(**self.cow_data)
+        for _ in range(4):
+            Cow.objects.create(**self.cow_data)
 
         # Check if CowInventory is still updated
         cow_inventory.refresh_from_db()
@@ -130,8 +128,8 @@ class TestCowInventoryModel:
     def test_cow_inventory_update_on_cow_delete(self):
         # Create a new cow
         cow = Cow.objects.create(**self.cow_data)
+
         # Delete the cow
-        cow.save()
         cow.delete()
 
         # Check if CowInventory is updated

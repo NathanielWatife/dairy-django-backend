@@ -249,3 +249,4 @@ class CowInventory(models.Model):
 
     def __str__(self):
         return f"Cow Inventory - Total: {self.total_number_of_cows}, Male: {self.number_of_male_cows}, Female: {self.number_of_female_cows}, Sold: {self.number_of_sold_cows}, Dead: {self.number_of_dead_cows}, Last Update: {self.last_update}"
+    
