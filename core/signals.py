@@ -2,7 +2,7 @@ from django.db.models.signals import post_save,post_delete
 from django.dispatch import receiver
 from core.models import Cow, CowInventory
 
-@receiver(post_save, sender=Cow)
+'''@receiver(post_save, sender=Cow)
 def update_cow_inventory_on_save(sender, instance, created, **kwargs):
     """
     Signal handler to update the CowInventory on cow save.
@@ -76,3 +76,40 @@ def update_cow_inventory_on_delete(sender, instance, **kwargs):
     ).count()
 
     cow_inventory.save()
+'''
+def update_cow_inventory(cow_inventory):
+    cow_inventory.total_number_of_cows = Cow.objects.filter(
+        availability_status="Alive"
+    ).count()
+    cow_inventory.number_of_male_cows = Cow.objects.filter(
+        availability_status="Alive", gender="Male"
+    ).count()
+    cow_inventory.number_of_female_cows = Cow.objects.filter(
+        availability_status="Alive", gender="Female"
+    ).count()
+    cow_inventory.number_of_sold_cows = Cow.objects.filter(
+        availability_status="Sold"
+    ).count()
+    cow_inventory.number_of_dead_cows = Cow.objects.filter(
+        availability_status="Dead"
+    ).count()
+
+    cow_inventory.save()
+
+@receiver(post_save, sender=Cow)
+def update_cow_inventory_on_save(sender, instance, created, **kwargs):
+    try:
+        cow_inventory = CowInventory.objects.get(pk=1)
+    except CowInventory.DoesNotExist:
+        cow_inventory = CowInventory.objects.create()
+
+    update_cow_inventory(cow_inventory)
+
+@receiver(post_delete, sender=Cow)
+def update_cow_inventory_on_delete(sender, instance, **kwargs):
+    try:
+        cow_inventory = CowInventory.objects.get(pk=1)
+    except CowInventory.DoesNotExist:
+        cow_inventory = CowInventory.objects.create()
+
+    update_cow_inventory(cow_inventory)

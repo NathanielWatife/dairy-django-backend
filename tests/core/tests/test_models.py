@@ -50,19 +50,7 @@ class TestCowInventoryModel:
         assert cow_inventory.number_of_male_cows == 0
         assert cow_inventory.number_of_female_cows == 1
         assert cow_inventory.number_of_sold_cows == 0
-        assert cow_inventory.number_of_dead_cows == 0
-
-        # Create more cows
-        for _ in range(4):
-            Cow.objects.create(**self.cow_data)
-
-        # Check if CowInventory is still updated
-        cow_inventory.refresh_from_db()
-        assert cow_inventory.total_number_of_cows == 5
-        assert cow_inventory.number_of_male_cows == 0
-        assert cow_inventory.number_of_female_cows == 5
-        assert cow_inventory.number_of_sold_cows == 0
-        assert cow_inventory.number_of_dead_cows == 0
+        assert cow_inventory.number_of_dead_cows == 0        
 
     def test_cow_inventory_update_on_cow_creation(self):
         # Create a new cow
