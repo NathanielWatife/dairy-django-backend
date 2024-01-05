@@ -7,7 +7,7 @@ from core.models import Cow, CowBreed, Inseminator
 from core.serializers import CowSerializer, InseminatorSerializer
 
 
-'''@pytest.mark.django_db
+@pytest.mark.django_db
 class TestCowBreedViewSet:
     @pytest.fixture(autouse=True)
     def setup(self, setup_users):
@@ -164,7 +164,7 @@ class TestCowBreedViewSet:
         assert response.data == {
             "detail": "No cow breed(s) found matching the provided filters."
         }
-'''
+
 @pytest.mark.django_db
 class TestCowViewSet:
     @pytest.fixture(autouse=True)
