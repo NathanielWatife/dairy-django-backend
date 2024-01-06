@@ -184,5 +184,10 @@ class CowInventorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowInventory
-        fields = "__all__"
-
+        fields = (
+            "total_number_of_cows",
+            "number_of_male_cows",
+            "number_of_female_cows",
+            "number_of_sold_cows",
+            "number_of_dead_cows"
+        )
