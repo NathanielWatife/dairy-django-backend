@@ -226,7 +226,7 @@ class TestQuarantineRecordViewSet:
             format="json",
             HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
         )
-        print("Response content:", response.content)
+
         assert response.status_code == expected_status
 
     @pytest.mark.parametrize(
