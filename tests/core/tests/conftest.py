@@ -10,7 +10,6 @@ from core.choices import (
     CowPregnancyChoices,
     CowProductionStatusChoices,
 )
-from core.models import CowInventory, CowBreed
 from users.choices import SexChoices
 from core.utils import todays_date
 

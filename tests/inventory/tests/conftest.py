@@ -141,7 +141,6 @@ def setup_cows():
     Fixture to create a sample cows object for testing.
     """
 
-    #breed =  CowBreed.objects.create(name=CowBreedChoices.JERSEY)
     general_cow = {
         "name": "General Cow",
         "breed": {"name": CowBreedChoices.JERSEY},
@@ -153,4 +152,3 @@ def setup_cows():
         "current_production_status": CowProductionStatusChoices.OPEN,
     }
     return general_cow
-
