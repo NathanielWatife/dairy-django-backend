@@ -2,7 +2,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from health.choices import CullingReasonChoices
+from health.choices import CullingReasonChoices, PathogenChoices
+from health.models import Pathogen
 from health.serializers import WeightRecordSerializer, CullingRecordSerializer
 from health.views import QuarantineRecordSerializer
 
