@@ -80,7 +80,7 @@ class QuarantineReasonChoices(models.TextChoices):
     - `CALVING`: Quarantine during calving.
 
     Usage:
-        These choices represent various reasons for quarantining a cow and are used as options in the QuarantineRecord model.
+        These choices represent various reasons for quarantining a cow and are used as options in the QuarantineRecord
 
     Example:
         ```
@@ -110,7 +110,7 @@ class PathogenChoices(models.TextChoices):
     - `UNKNOWN`: Unknown pathogen.
 
     Usage:
-        These choices represent different types of pathogens affecting a cow and are used as options in the PathogenRecord model.
+        These choices represent different types of pathogens affecting a cow and are used as options in PathogenRecord.
 
     Example:
         ```
@@ -124,3 +124,30 @@ class PathogenChoices(models.TextChoices):
     VIRUS = "Virus"
     FUNGI = "Fungi"
     UNKNOWN = "Unknown"
+
+
+class DiseaseCategoryChoices(models.TextChoices):
+    """
+    Choices for categories of diseases affecting a cow.
+
+    Choices:
+    - `NUTRITION`: Disease caused by nutritional deficiencies.
+    - `INFECTIOUS`: Disease caused by infectious agents.
+    - `PHYSIOLOGICAL`: Disease caused by physiological factors.
+    - `GENETIC`: Disease caused by genetic factors.
+
+    Usage:
+        These choices represent different categories of diseases affecting a cow and are used as options
+         in the DiseaseCategory model.
+
+    Example:
+        ```
+        class DiseaseCategory(models.Model):
+            name = models.CharField(max_length=15, choices=DiseaseCategoryChoices.choices)
+        ```
+    """
+
+    NUTRITION = "Nutrition"
+    INFECTIOUS = "Infectious"
+    PHYSIOLOGICAL = "Physiological"
+    GENETIC = "Genetic"
