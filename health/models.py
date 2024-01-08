@@ -5,11 +5,13 @@ from health.choices import (
     CullingReasonChoices,
     QuarantineReasonChoices,
     PathogenChoices,
+    DiseaseCategoryChoices,
 )
 from health.validators import (
     PathogenValidator,
     WeightRecordValidator,
     QuarantineValidator,
+    DiseaseCategoryValidator,
 )
 
 
@@ -154,7 +156,7 @@ class Pathogen(models.Model):
     - `clean`: Validates the name of the pathogen.
     """
 
-    name = models.CharField(max_length=10, choices=PathogenChoices.choices)
+    name = models.CharField(max_length=10, choices=PathogenChoices.choices, unique=True)
     # diagnosis_date = models.DateField(auto_now_add=True)
 
     def clean(self):
@@ -167,5 +169,19 @@ class Pathogen(models.Model):
         """
         Overrides the save method to perform additional validation before saving.
         """
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class DiseaseCategory(models.Model):
+    name = models.CharField(max_length=15, choices=DiseaseCategoryChoices.choices, unique=True)
+
+    def clean(self):
+        DiseaseCategoryValidator.validate_name(self.name)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
