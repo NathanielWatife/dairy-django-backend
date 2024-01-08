@@ -2,8 +2,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from health.choices import CullingReasonChoices, PathogenChoices
-from health.models import Pathogen
+from health.choices import CullingReasonChoices, DiseaseCategoryChoices, PathogenChoices
+from health.models import DiseaseCategory, Pathogen
 from health.serializers import WeightRecordSerializer, CullingRecordSerializer
 from health.views import QuarantineRecordSerializer
 
@@ -345,19 +345,63 @@ class TestPathogenViewSet:
     @pytest.mark.parametrize(
         "user_type, expected_status",
         [
+            ("farm_owner", status.HTTP_204_NO_CONTENT),
+            ("farm_manager", status.HTTP_204_NO_CONTENT),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_delete_pathogen(self, user_type, expected_status):
+        pathogen = Pathogen.objects.create(name=PathogenChoices.UNKNOWN)
+        url = reverse("health:pathogens-detail", kwargs={"pk": pathogen.id})
+        response = self.client.delete(
+            url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
+        )
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+class TestDiseaseCategoryViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users):
+        self.client = setup_users["client"]
+        self.tokens = {
+            "farm_owner": setup_users["farm_owner_token"],
+            "farm_manager": setup_users["farm_manager_token"],
+            "asst_farm_manager": setup_users["asst_farm_manager_token"],
+            "farm_worker": setup_users["farm_worker_token"],
+        }
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_201_CREATED),
+            ("farm_manager", status.HTTP_201_CREATED),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_create_disease_category(self, user_type, expected_status):
+        disease_category_data = {"name": DiseaseCategoryChoices.NUTRITION}
+        response = self.client.post(
+            reverse("health:disease-categories-list"),
+            disease_category_data,
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+        assert response.status_code == expected_status
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
             ("farm_owner", status.HTTP_200_OK),
             ("farm_manager", status.HTTP_200_OK),
             ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
             ("farm_worker", status.HTTP_403_FORBIDDEN),
         ],
     )
-    def test_update_pathogen(self, user_type, expected_status):
-        pathogen = Pathogen.objects.create(name=PathogenChoices.UNKNOWN)
-        url = reverse("health:pathogens-detail", kwargs={"pk": pathogen.id})
-        pathogen_update_data = {"name": PathogenChoices.FUNGI}
-        response = self.client.put(
-            url,
-            pathogen_update_data,
+    def test_retrieve_disease_category(self, user_type, expected_status):
+        response = self.client.get(
+            reverse("health:disease-categories-list"),
             HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
         )
         assert response.status_code == expected_status
@@ -371,10 +415,15 @@ class TestPathogenViewSet:
             ("farm_worker", status.HTTP_403_FORBIDDEN),
         ],
     )
-    def test_delete_pathogen(self, user_type, expected_status):
-        pathogen = Pathogen.objects.create(name=PathogenChoices.UNKNOWN)
-        url = reverse("health:pathogens-detail", kwargs={"pk": pathogen.id})
+    def test_delete_disease_category(self, user_type, expected_status):
+        disease_category = DiseaseCategory.objects.create(
+            name=DiseaseCategoryChoices.NUTRITION
+        )
+        url = reverse(
+            "health:disease-categories-detail", kwargs={"pk": disease_category.pk}
+        )
         response = self.client.delete(
             url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
         )
+
         assert response.status_code == expected_status

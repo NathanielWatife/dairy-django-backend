@@ -9,8 +9,9 @@ from health.filters import (
     CullingRecordFilterSet,
     QuarantineRecordFilterSet,
 )
-from health.models import WeightRecord, CullingRecord, QuarantineRecord, Pathogen
+from health.models import DiseaseCategory, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
 from health.serializers import (
+    DiseaseCategorySerializer,
     WeightRecordSerializer,
     CullingRecordSerializer,
     QuarantineRecordSerializer,
@@ -230,14 +231,12 @@ class PathogenViewSet(viewsets.ModelViewSet):
     - `list`: Get a list of all pathogens.
     - `retrieve`: Retrieve details of a specific pathogen.
     - `create`: Create a new pathogen.
-    - `update`: Update an existing pathogen.
-    - `partial_update`: Partially update an existing pathogen.
     - `destroy`: Delete an existing pathogen.
 
     Serializer class used for request/response data: `PathogenSerializer`.
 
     Permissions:
-    - For 'list', 'retrieve', 'create', 'update', 'partial_update', 'destroy':
+    - For 'list', 'retrieve', 'create', 'destroy':
       Accessible to farm managers and farm owners only.
 
     Attributes:
@@ -248,4 +247,33 @@ class PathogenViewSet(viewsets.ModelViewSet):
 
     queryset = Pathogen.objects.all()
     serializer_class = PathogenSerializer
+    permission_classes = [IsFarmManager | IsFarmOwner]
+
+
+class DiseaseCategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to handle operations related to disease categories.
+
+    Provides CRUD functionality for disease categories.
+
+    Actions:
+    - `list`: Get a list of all disease categories.
+    - `retrieve`: Retrieve details of a specific disease category.
+    - `create`: Create a new disease category.
+    - `destroy`: Delete an existing disease category.
+
+    Serializer class used for request/response data: `DiseaseCategorySerializer`.
+
+    Permissions:
+    - For 'list', 'retrieve', 'create', 'destroy':
+      Accessible to farm managers and farm owners only.
+
+    Attributes:
+    - `queryset`: Queryset containing all `DiseaseCategory` instances.
+    - `serializer_class`: Serializer class for `DiseaseCategory`.
+    - `permission_classes`: Permission classes for controlling access to different actions.
+    """
+
+    queryset = DiseaseCategory.objects.all()
+    serializer_class = DiseaseCategorySerializer
     permission_classes = [IsFarmManager | IsFarmOwner]

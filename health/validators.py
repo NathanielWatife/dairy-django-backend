@@ -1,7 +1,11 @@
 from django.core.exceptions import ValidationError
 
 from core.choices import CowAvailabilityChoices, CowPregnancyChoices
-from health.choices import QuarantineReasonChoices, PathogenChoices
+from health.choices import (
+    QuarantineReasonChoices,
+    PathogenChoices,
+    DiseaseCategoryChoices,
+)
 from users.choices import SexChoices
 
 
@@ -50,7 +54,8 @@ class WeightRecordValidator:
         """
         if cow.availability_status != CowAvailabilityChoices.ALIVE:
             raise ValidationError(
-                f"Weight records are only allowed for cows present in the farm. This cow is marked as: {cow.availability_status}",
+                f"Weight records are only allowed for cows present in the farm. "
+                f"This cow is marked as: {cow.availability_status}",
                 code="invalid_availability_status",
             )
 
@@ -64,7 +69,8 @@ class WeightRecordValidator:
         - `cow` (Cow): The cow associated with the weight record.
 
         Raises:
-        - `ValidationError` with code "duplicate_weight_record": If there is more than one weight record for the same cow on the same date.
+        - `ValidationError` with code "duplicate_weight_record": If there is more than one weight record for
+        the same cow on the same date.
         """
         from health.models import WeightRecord
 
@@ -87,13 +93,6 @@ class QuarantineValidator:
         Use this class to perform validation checks related to cow quarantine.
 
     Example:
-        ```
-        class QuarantineRecord(models.Model):
-            # ... (Other fields)
-
-        class QuarantineValidator:
-            # ... (Methods and documentation)
-        ```
     """
 
     @staticmethod
@@ -157,14 +156,6 @@ class PathogenValidator:
     Usage:
         Use this class to perform validation checks related to pathogens.
 
-    Example:
-        ```
-        class Pathogen(models.Model):
-            # ... (Other fields)
-
-        class PathogenValidator:
-            # ... (Methods and documentation)
-        ```
     """
 
     @staticmethod
@@ -183,4 +174,13 @@ class PathogenValidator:
         if name not in PathogenChoices.values:
             raise ValidationError(
                 f"Invalid name for the pathogen: {name}", code="invalid_pathogen_name"
+            )
+
+
+class DiseaseCategoryValidator:
+    @staticmethod
+    def validate_name(name):
+        if name not in DiseaseCategoryChoices.values:
+            raise ValidationError(
+                f"Invalid name: {name}", code="invalid_disease_category_name"
             )
