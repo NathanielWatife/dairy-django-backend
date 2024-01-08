@@ -90,3 +90,34 @@ class TestCowInventoryViewSet:
             delete_url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
         )
         assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+class TestCowInventoryUpdateHistoryViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_cows):
+        self.client = setup_users["client"]
+
+        self.tokens = {
+            "farm_owner": setup_users["farm_owner_token"],
+            "farm_manager": setup_users["farm_manager_token"],
+            "asst_farm_manager": setup_users["asst_farm_manager_token"],
+            "farm_worker": setup_users["farm_worker_token"],
+        }
+        self.general_cow = setup_cows
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_200_OK),
+            ("farm_manager", status.HTTP_200_OK),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_list_cow_inventory_history(self, user_type, expected_status):
+        url = reverse("inventory:cow-inventory-history-list")
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
+        )
+        assert response.status_code == expected_status
