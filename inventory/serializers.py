@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from inventory.models import CowInventory
+from inventory.models import CowInventory, CowInventoryUpdateHistory
 
 
 class CowInventorySerializer(serializers.ModelSerializer):
@@ -49,3 +49,37 @@ class CowInventorySerializer(serializers.ModelSerializer):
             "number_of_sold_cows",
             "number_of_dead_cows",
         )
+
+
+class CowInventoryUpdateHistorySerializer(serializers.ModelSerializer):
+    """
+    Serializer for the CowInventoryUpdateHistory model.
+
+    Fields:
+    - `number_of_cows`: An integer field representing the total number of cows.
+    - `date_updated`: A read-only field representing the date of the cow inventory update.
+
+    Meta:
+    - `model`: The CowInventoryUpdateHistory model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Usage:
+        Use this serializer to convert CowInventoryUpdateHistory model instances to JSON representations
+        and vice versa.
+
+    Example:
+        ```
+        class CowInventoryUpdateHistory(models.Model):
+            number_of_cows = models.PositiveIntegerField(default=0, editable=False)
+            date_updated = models.DateField(auto_now=True)
+
+        class CowInventoryUpdateHistorySerializer(serializers.ModelSerializer):
+            class Meta:
+                model = CowInventoryUpdateHistory
+                fields = "__all__"
+        ```
+    """
+
+    class Meta:
+        model = CowInventoryUpdateHistory
+        fields = ("number_of_cows", "date_updated")
