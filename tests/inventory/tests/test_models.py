@@ -2,7 +2,7 @@ import pytest
 
 from core.choices import CowBreedChoices, CowAvailabilityChoices
 from core.models import CowBreed, Cow
-from inventory.models import CowInventory
+from inventory.models import CowInventory, CowInventoryUpdateHistory
 
 
 @pytest.mark.django_db
@@ -99,3 +99,16 @@ class TestCowInventoryModel:
         assert cow_inventory.number_of_female_cows == 0
         assert cow_inventory.number_of_sold_cows == 0
         assert cow_inventory.number_of_dead_cows == 0
+
+
+@pytest.mark.django_db
+class TestCowInventoryUpdateHistoryModel:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_cows):
+        self.cow_data = setup_cows
+        self.cow_data["breed"] = CowBreed.objects.create(name=CowBreedChoices.JERSEY)
+
+    def test_cow_inventory_update_history_creation(self):
+        Cow.objects.create(**self.cow_data)
+        history_records_count = CowInventoryUpdateHistory.objects.all().count()
+        assert history_records_count == 2
