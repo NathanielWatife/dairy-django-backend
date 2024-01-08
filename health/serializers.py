@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from core.models import Cow
-from health.models import WeightRecord, CullingRecord, QuarantineRecord, Pathogen
+from health.models import DiseaseCategory, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
 
 
 class WeightRecordSerializer(serializers.ModelSerializer):
@@ -155,4 +155,36 @@ class PathogenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pathogen
+        fields = ("name",)
+
+
+class DiseaseCategorySerializer(serializers.ModelSerializer):
+    """
+    Serializer for the DiseaseCategory model.
+
+    Fields:
+    - `name`: A choice field representing the type of disease.
+
+    Meta:
+    - `model`: The DiseaseCategory model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Usage:
+        Use this serializer to convert DiseaseCategory model instances to JSON representations
+        and vice versa.
+
+    Example:
+        ```
+        class DiseaseCategory(models.Model):
+            name = models.CharField(max_length=15, choices=DiseaseCategoryChoices.choices)
+
+        class DiseaseCategorySerializer(serializers.ModelSerializer):
+            class Meta:
+                model = DiseaseCategory
+                fields = ("name",)
+        ```
+    """
+
+    class Meta:
+        model = DiseaseCategory
         fields = ("name",)
