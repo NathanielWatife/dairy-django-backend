@@ -6,12 +6,16 @@ from health.choices import (
     QuarantineReasonChoices,
     PathogenChoices,
     DiseaseCategoryChoices,
+    SymptomSeverityChoices,
+    SymptomTypeChoices,
+    SymptomLocationChoices,
 )
 from health.validators import (
     PathogenValidator,
     WeightRecordValidator,
     QuarantineValidator,
     DiseaseCategoryValidator,
+    SymptomValidator,
 )
 
 
@@ -174,14 +178,78 @@ class Pathogen(models.Model):
 
 
 class DiseaseCategory(models.Model):
-    name = models.CharField(max_length=15, choices=DiseaseCategoryChoices.choices, unique=True)
+    """
+    Represents a category of diseases affecting cows.
+
+    Attributes:
+    - `name` (str): The name of the disease category, chosen from predefined choices.
+
+    Methods:
+    - `clean`: Validates the name of the disease category.
+    """
+
+    name = models.CharField(
+        max_length=15, choices=DiseaseCategoryChoices.choices, unique=True
+    )
 
     def clean(self):
+        """
+        Validate the name of the disease category.
+        """
         DiseaseCategoryValidator.validate_name(self.name)
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
+        """
+        Overrides the save method to perform additional validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class Symptoms(models.Model):
+    """
+    Represents symptoms reported in cows.
+
+    Attributes:
+    - `name` (str): The name of the symptom.
+    - `symptom_type` (str): The type of the symptom, chosen from predefined choices.
+    - `description` (str): Description of the symptom (nullable).
+    - `date_observed` (date): Date when the symptom was observed.
+    - `severity` (str): Severity of the symptom, chosen from predefined choices.
+    - `location` (str): Location of the symptom, chosen from predefined choices.
+
+    Methods:
+    - `clean`: Validates the attributes of the symptom.
+    """
+
+    name = models.CharField(max_length=50)
+    symptom_type = models.CharField(max_length=20, choices=SymptomTypeChoices.choices)
+    description = models.TextField(null=True)
+    severity = models.CharField(max_length=20, choices=SymptomSeverityChoices.choices)
+    location = models.CharField(max_length=20, choices=SymptomLocationChoices.choices)
+    date_observed = models.DateField()
+
+    def clean(self):
+        """
+        Validates the attributes of the symptom.
+        """
+        SymptomValidator.validate_name(self.name)
+        SymptomValidator.validate_fields(
+            self.date_observed, self.symptom_type, self.severity, self.location
+        )
+        SymptomValidator.validate_type_and_location_compatibility(
+            self.symptom_type, self.location
+        )
+
+    def __str__(self):
+        return f" {self.name} reported as #{self.severity} - on #{self.date_observed}"
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to perform additional validation before saving.
+        """
         self.clean()
         super().save(*args, **kwargs)

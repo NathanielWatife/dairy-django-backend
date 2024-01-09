@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
 from core.models import Cow
-from health.models import DiseaseCategory, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
+from health.models import (
+    DiseaseCategory,
+    WeightRecord,
+    CullingRecord,
+    QuarantineRecord,
+    Pathogen,
+    Symptoms,
+)
 
 
 class WeightRecordSerializer(serializers.ModelSerializer):
@@ -188,3 +195,32 @@ class DiseaseCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DiseaseCategory
         fields = ("name",)
+
+
+class SymptomsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Symptoms model.
+
+    Fields:
+    - `name`: The name of the symptom.
+    - `symptom_type`: The type of the symptom.
+    - `description`: Description of the symptom (nullable).
+    - `date_observed`: Date when the symptom was observed.
+    - `severity`: Severity of the symptom.
+    - `location`: Location of the symptom.
+
+    Meta:
+    - `model`: The Symptoms model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+    """
+
+    class Meta:
+        model = Symptoms
+        fields = (
+            "name",
+            "symptom_type",
+            "description",
+            "date_observed",
+            "severity",
+            "location"
+        )

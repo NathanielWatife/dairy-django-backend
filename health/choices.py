@@ -151,3 +151,98 @@ class DiseaseCategoryChoices(models.TextChoices):
     INFECTIOUS = "Infectious"
     PHYSIOLOGICAL = "Physiological"
     GENETIC = "Genetic"
+
+
+class SymptomTypeChoices(models.TextChoices):
+    """
+    Choices for types of symptoms reported in cows.
+
+    Choices:
+    - `RESPIRATORY`: Symptom related to the respiratory system.
+    - `DIGESTIVE`: Symptom related to the digestive system.
+    - `REPRODUCTIVE`: Symptom related to the reproductive system.
+    - `PHYSICAL`: Physical symptom not specific to a particular system.
+    - `MUSCULOSKELETAL`: Symptom related to the musculoskeletal system.
+    - `METABOLIC`: Symptom related to metabolic functions.
+    - `OTHER`: Other types of symptoms.
+
+    Usage:
+        These choices represent different types of symptoms reported in cows and are used as options
+        in the Symptoms model.
+
+    Example:
+        ```
+        class Symptoms(models.Model):
+            symptom_type = models.CharField(max_length=20, choices=SymptomTypeChoices.choices)
+        ```
+    """
+
+    RESPIRATORY = "Respiratory"
+    DIGESTIVE = "Digestive"
+    REPRODUCTIVE = "Reproductive"
+    PHYSICAL = "Physical"
+    MUSCULOSKELETAL = "Musculoskeletal"
+    METABOLIC = "Metabolic"
+    OTHER = "Other"
+
+
+class SymptomSeverityChoices(models.TextChoices):
+    """
+    Choices for the severity of symptoms reported in cows.
+
+    Choices:
+    - `MILD`: Mild severity of the symptom.
+    - `MODERATE`: Moderate severity of the symptom.
+    - `SEVERE`: Severe severity of the symptom.
+
+    Usage:
+        These choices represent different levels of severity for symptoms reported in cows and are used as options
+        in the Symptoms model.
+
+    Example:
+        ```
+        class Symptoms(models.Model):
+            severity = models.CharField(max_length=20, choices=SymptomSeverityChoices.choices)
+        ```
+    """
+
+    MILD = "Mild"
+    MODERATE = "Moderate"
+    SEVERE = "Severe"
+
+
+class SymptomLocationChoices(models.TextChoices):
+    """
+    Choices for the location of symptoms reported in cows.
+
+    Choices:
+    - `HEAD`: Symptom located in the head.
+    - `NECK`: Symptom located in the neck.
+    - `CHEST`: Symptom located in the chest.
+    - `ABDOMEN`: Symptom located in the abdomen.
+    - `BACK`: Symptom located in the back.
+    - `LEGS`: Symptom located in the legs.
+    - `TAIL`: Symptom located in the tail.
+    - `WHOLE_BODY`: Symptom affecting the whole body.
+    - `OTHER`: Other locations not specified.
+
+    Usage:
+        These choices represent different locations of symptoms reported in cows and are used as options
+        in the Symptoms model.
+
+    Example:
+        ```
+        class Symptoms(models.Model):
+            location = models.CharField(max_length=20, choices=SymptomLocationChoices.choices)
+        ```
+    """
+
+    HEAD = "Head"
+    NECK = "Neck"
+    CHEST = "Chest"
+    ABDOMEN = "Abdomen"
+    BACK = "Back"
+    LEGS = "Legs"
+    TAIL = "Tail"
+    WHOLE_BODY = "Whole body"
+    OTHER = "Other"
