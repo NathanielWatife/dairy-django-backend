@@ -11,7 +11,12 @@ from core.choices import (
     CowProductionStatusChoices,
 )
 from core.serializers import CowSerializer
-from health.choices import CullingReasonChoices
+from health.choices import (
+    CullingReasonChoices,
+    SymptomLocationChoices,
+    SymptomSeverityChoices,
+    SymptomTypeChoices,
+)
 
 from users.choices import SexChoices
 from core.utils import todays_date
@@ -214,3 +219,15 @@ def setup_quarantine_record_data():
     }
 
     return quarantine_data
+
+
+@pytest.fixture
+def setup_symptom_data():
+    symptom_data = {
+        "name": "Fever",
+        "symptom_type": SymptomTypeChoices.RESPIRATORY,
+        "date_observed": todays_date,
+        "severity": SymptomSeverityChoices.MILD,
+        "location": SymptomLocationChoices.WHOLE_BODY
+    }
+    return symptom_data
