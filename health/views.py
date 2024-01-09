@@ -9,9 +9,10 @@ from health.filters import (
     CullingRecordFilterSet,
     QuarantineRecordFilterSet,
 )
-from health.models import DiseaseCategory, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
+from health.models import DiseaseCategory, Symptoms, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
 from health.serializers import (
     DiseaseCategorySerializer,
+    SymptomsSerializer,
     WeightRecordSerializer,
     CullingRecordSerializer,
     QuarantineRecordSerializer,
@@ -277,3 +278,33 @@ class DiseaseCategoryViewSet(viewsets.ModelViewSet):
     queryset = DiseaseCategory.objects.all()
     serializer_class = DiseaseCategorySerializer
     permission_classes = [IsFarmManager | IsFarmOwner]
+
+
+class SymptomsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to handle operations related to symptoms.
+
+    Provides CRUD functionality for symptoms.
+
+    Actions:
+    - `list`: Get a list of all symptoms.
+    - `retrieve`: Retrieve details of a specific symptom.
+    - `create`: Create a new symptom.
+    - `destroy`: Delete an existing symptom.
+
+    Serializer class used for request/response data: `SymptomSerializer`.
+
+    Permissions:
+    - For 'list', 'retrieve', 'create', 'destroy':
+      Accessible to farm managers and farm owners only.
+
+    Attributes:
+    - `queryset`: Queryset containing all `Symptom` instances.
+    - `serializer_class`: Serializer class for `Symptom`.
+    - `permission_classes`: Permission classes for controlling access to different actions.
+    """
+    queryset = Symptoms.objects.all()
+    serializer_class = SymptomsSerializer
+    permission_classes = [IsFarmManager | IsFarmOwner]
+    
+    
