@@ -1,10 +1,14 @@
 from django.core.exceptions import ValidationError
 
 from core.choices import CowAvailabilityChoices, CowPregnancyChoices
+from core.utils import todays_date
 from health.choices import (
     QuarantineReasonChoices,
     PathogenChoices,
     DiseaseCategoryChoices,
+    SymptomLocationChoices,
+    SymptomSeverityChoices,
+    SymptomTypeChoices,
 )
 from users.choices import SexChoices
 
@@ -178,9 +182,107 @@ class PathogenValidator:
 
 
 class DiseaseCategoryValidator:
+    """
+    Validator class for validating disease category-related logic.
+
+    Methods:
+    - `validate_name`: Validate the name of the disease category.
+    """
+
     @staticmethod
     def validate_name(name):
+        """
+        Validate the name of the disease category.
+
+        Parameters:
+        - `name` (str): The name of the disease category.
+
+        Raises:
+        - `ValidationError` (code: `invalid_disease_category_name`):
+            If the validation fails with the message "Invalid name: {name}".
+        """
         if name not in DiseaseCategoryChoices.values:
             raise ValidationError(
                 f"Invalid name: {name}", code="invalid_disease_category_name"
+            )
+
+
+class SymptomValidator:
+    """
+    Validator class for validating symptom-related logic.
+
+    Methods:
+    - `validate_fields`: Validate various fields of a symptom.
+    - `validate_name`: Validate the name of the symptom.
+    - `validate_type_and_location_compatibility`: Validate compatibility between symptom type and location.
+    """
+
+    @staticmethod
+    def validate_fields(date_observed, symptom_type, severity, location):
+        """
+        Validate various fields of a symptom.
+
+        Parameters:
+        - `date_observed`: Date when the symptom was observed.
+        - `symptom_type` (str): Type of the symptom.
+        - `severity` (str): Severity of the symptom.
+        - `location` (str): Location of the symptom.
+
+        Raises:
+        - `ValidationError` (code: `invalid_date_observed`, `invalid_symptom_type`,
+          `invalid_symptom_severity`, `invalid_symptom_location`):
+            If any validation fails.
+        """
+        if date_observed > todays_date:
+            raise ValidationError("The date of observation cannot be in the future.", code="invalid_date_observed")
+
+        if symptom_type not in SymptomTypeChoices.values:
+            raise ValidationError(f"Invalid symptom type: ({symptom_type}).", code="invalid_symptom_type")
+
+        if severity not in SymptomSeverityChoices.values:
+            raise ValidationError(f"Invalid severity choice: ({severity}).", code="invalid_symptom_severity")
+
+        if location not in SymptomLocationChoices.values:
+            raise ValidationError(f"Invalid body location: ({location}).", code="invalid_symptom_location")
+
+    @staticmethod
+    def validate_name(name):
+        """
+        Validate the name of the symptom.
+
+        Parameters:
+        - `name` (str): The name of the symptom.
+
+        Raises:
+        - `ValidationError` (code: `invalid_symptom_name`):
+            If the validation fails with the message "Symptoms name should only contain alphabetic characters (no numerics allowed)."
+        """
+        if not name.replace(" ", "").isalpha():
+            raise ValidationError(
+                "Symptoms name should only contain alphabetic characters (no numerics allowed).",
+                code="invalid_symptom_name"
+            )
+
+    @staticmethod
+    def validate_type_and_location_compatibility(symptom_type, location):
+        """
+        Validate compatibility between symptom type and location.
+
+        Parameters:
+        - `symptom_type` (str): Type of the symptom.
+        - `location` (str): Location of the symptom.
+
+        Raises:
+        - `ValidationError` (code: `incompatible_type_and_location`):
+            If the validation fails with the message "For respiratory symptoms, the location must be Chest, Neck, Head, or Whole Body."
+        """
+        if symptom_type == SymptomTypeChoices.RESPIRATORY and location not in [
+            SymptomLocationChoices.CHEST,
+            SymptomLocationChoices.NECK,
+            SymptomLocationChoices.HEAD,
+            SymptomLocationChoices.WHOLE_BODY,
+        ]:
+            raise ValidationError(
+                "For respiratory symptoms, the location must be Chest, Neck, Head, or Whole Body.",
+                code="incompatible_type_and_location"
             )
