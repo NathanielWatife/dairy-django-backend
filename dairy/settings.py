@@ -11,7 +11,7 @@ SECRET_KEY = "django-insecure-+^mi(j_hrx($6yq_@e5b)#uhfrck(&j0ndjb6((kx4ds^#*l*v
 DEBUG = True
 
 # List of allowed host/domain names for this site. Empty for now.
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Define the applications used in this Django project.
 INSTALLED_APPS = [
