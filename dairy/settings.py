@@ -165,12 +165,12 @@ LOGGING = {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "simple",
+            "formatter": "verbose",
         },
     },
     "loggers": {
         "": {
-            "handlers": ["file"],
+            "handlers": ["console"],
             "level": env("DJANGO_LOG_LEVEL"),
             "propagate": True,
         },
