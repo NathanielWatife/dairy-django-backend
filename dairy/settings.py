@@ -156,14 +156,14 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": env("DJANGO_LOG_FILE"),
-            "level": env("DJANGO_LOG_LEVEL"),
-            "formatter": "verbose",
-        },
+        # "file": {
+        #     "class": "logging.FileHandler",
+        #     "filename": env("DJANGO_LOG_FILE"),
+        #     "level": env("DJANGO_LOG_LEVEL"),
+        #     "formatter": "verbose",
+        # },
         "console": {
-            "level": "DEBUG",
+            "level": env("DJANGO_LOG_LEVEL"),
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
