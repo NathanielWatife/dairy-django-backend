@@ -8,8 +8,19 @@ from health.filters import (
     WeightRecordFilterSet,
     CullingRecordFilterSet,
     QuarantineRecordFilterSet,
+    DiseaseFilterSet,
+    RecoveryFilterSet,
 )
-from health.models import DiseaseCategory, Symptoms, WeightRecord, CullingRecord, QuarantineRecord, Pathogen
+from health.models import (
+    DiseaseCategory,
+    Symptoms,
+    WeightRecord,
+    CullingRecord,
+    QuarantineRecord,
+    Pathogen,
+    Disease,
+    Recovery,
+)
 from health.serializers import (
     DiseaseCategorySerializer,
     SymptomsSerializer,
@@ -17,6 +28,8 @@ from health.serializers import (
     CullingRecordSerializer,
     QuarantineRecordSerializer,
     PathogenSerializer,
+    DiseaseSerializer,
+    RecoverySerializer,
 )
 from users.permissions import IsFarmManager, IsFarmOwner, IsAssistantFarmManager
 
@@ -303,8 +316,101 @@ class SymptomsViewSet(viewsets.ModelViewSet):
     - `serializer_class`: Serializer class for `Symptom`.
     - `permission_classes`: Permission classes for controlling access to different actions.
     """
+
     queryset = Symptoms.objects.all()
     serializer_class = SymptomsSerializer
     permission_classes = [IsFarmManager | IsFarmOwner]
+
+
+class DiseaseViewSet(viewsets.ModelViewSet):
+    """
+        ViewSet to handle operations related to diseases.
     
+        Provides CRUD functionality for diseases and supports filtering and ordering.
     
+        Actions:
+        - `list`: Get a list of all diseases with optional filtering and ordering.
+        - `retrieve`: Retrieve details of a specific disease.
+        - `create`: Create a new disease.
+        - `update`: Update an existing disease.
+        - `partial_update`: Partially update an existing disease.
+        - `destroy`: Delete an existing disease.
+    
+        Serializer class used for request/response data: `DiseaseSerializer`.
+        Filter class used for queryset filtering: `DiseaseFilterSet`.
+    
+        Permissions:
+        - For 'list', 'retrieve', 'create', 'update', 'partial_update', 'destroy':
+          Accessible to farm managers and farm owners only.
+        """
+    queryset = Disease.objects.all()
+    serializer_class = DiseaseSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = DiseaseFilterSet
+    permission_classes = [IsFarmManager | IsFarmOwner]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Disease records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Disease records found."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class RecoveryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+       ViewSet to handle read-only operations related to recovery records.
+    
+       Provides read-only functionality for recovery records and supports filtering and ordering.
+    
+       Actions:
+       - `list`: Get a list of all recovery records with optional filtering and ordering.
+       - `retrieve`: Retrieve details of a specific recovery record.
+    
+       Serializer class used for request/response data: `RecoverySerializer`.
+       Filter class used for queryset filtering: `RecoveryFilterSet`.
+    
+       Permissions:
+       - For 'list', 'retrieve':
+         Accessible to farm managers and farm owners only.
+       """
+    queryset = Recovery.objects.all()
+    serializer_class = RecoverySerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = RecoveryFilterSet
+    permission_classes = [IsFarmManager | IsFarmOwner]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Disease Recovery records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Disease Recovery records found."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
