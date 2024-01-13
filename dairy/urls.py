@@ -27,7 +27,7 @@ urlpatterns = [
     # Include authentication URLs provided by Djoser
     path("auth/", include("djoser.urls")),
     # Include URLs from the 'users' app, and set a namespace for clarity
-    path("", include("users.urls", namespace="users")),
+    path("users/", include("users.urls", namespace="users")),
     path("core/", include("core.urls", namespace="core")),
     path("reproduction/", include("reproduction.urls", namespace="reproduction")),
     path("production/", include("production.urls", namespace="production")),
@@ -35,7 +35,7 @@ urlpatterns = [
     path("inventory/", include("inventory.urls", namespace="inventory")),
     # URL for Swagger documentation with UI
     path(
-        "swagger/",
+        "",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
