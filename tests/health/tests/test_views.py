@@ -2,9 +2,17 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from health.choices import CullingReasonChoices, DiseaseCategoryChoices, PathogenChoices, SymptomLocationChoices
-from health.models import DiseaseCategory, Pathogen, Symptoms
-from health.serializers import WeightRecordSerializer, CullingRecordSerializer
+from health.choices import (
+    CullingReasonChoices,
+    DiseaseCategoryChoices,
+    PathogenChoices,
+)
+from health.models import DiseaseCategory, Pathogen, Symptoms, Recovery
+from health.serializers import (
+    WeightRecordSerializer,
+    CullingRecordSerializer,
+    DiseaseSerializer,
+)
 from health.views import QuarantineRecordSerializer
 
 
@@ -485,9 +493,78 @@ class TestSymptomViewSet:
             ("farm_worker", status.HTTP_403_FORBIDDEN),
         ],
     )
-    def test_delete_pathogen(self, user_type, expected_status):
+    def test_delete_symptom(self, user_type, expected_status):
         symptom = Symptoms.objects.create(**self.symptom_data)
         url = reverse("health:symptoms-detail", kwargs={"pk": symptom.id})
+        response = self.client.delete(
+            url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
+        )
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+class TestDiseaseViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_disease_data):
+        self.client = setup_users["client"]
+        self.tokens = {
+            "farm_owner": setup_users["farm_owner_token"],
+            "farm_manager": setup_users["farm_manager_token"],
+            "asst_farm_manager": setup_users["asst_farm_manager_token"],
+            "team_leader": setup_users["team_leader_token"],
+            "farm_worker": setup_users["farm_worker_token"],
+        }
+        self.disease_data = setup_disease_data
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_201_CREATED),
+            ("farm_manager", status.HTTP_201_CREATED),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_create_disease(self, user_type, expected_status):
+        response = self.client.post(
+            reverse("health:diseases-list"),
+            self.disease_data,
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+        assert response.status_code == expected_status
+        if expected_status == status.HTTP_201_CREATED:
+            assert Recovery.objects.all().exists()
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_200_OK),
+            ("farm_manager", status.HTTP_200_OK),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_retrieve_diseases(self, user_type, expected_status):
+        response = self.client.get(
+            reverse("health:diseases-list"),
+            HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}",
+        )
+        assert response.status_code == expected_status
+
+    @pytest.mark.parametrize(
+        "user_type, expected_status",
+        [
+            ("farm_owner", status.HTTP_204_NO_CONTENT),
+            ("farm_manager", status.HTTP_204_NO_CONTENT),
+            ("asst_farm_manager", status.HTTP_403_FORBIDDEN),
+            ("farm_worker", status.HTTP_403_FORBIDDEN),
+        ],
+    )
+    def test_delete_disease(self, user_type, expected_status):
+        serializer = DiseaseSerializer(data=self.disease_data)
+        serializer.is_valid()
+        disease = serializer.save()
+        url = reverse("health:diseases-detail", kwargs={"pk": disease.id})
         response = self.client.delete(
             url, HTTP_AUTHORIZATION=f"Token {self.tokens[user_type]}"
         )
