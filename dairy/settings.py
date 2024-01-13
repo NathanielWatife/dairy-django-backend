@@ -1,11 +1,17 @@
 import os
+import environ
 from pathlib import Path
 
 # Set the base directory of the project.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+environ.Env.read_env(BASE_DIR / ".env")
+
+env = environ.Env(DEBUG=(bool, False))
+
 # Keep this key secret in production. It's used for various security measures.
-SECRET_KEY = "django-insecure-+^mi(j_hrx($6yq_@e5b)#uhfrck(&j0ndjb6((kx4ds^#*l*v"
+SECRET_KEY = env("SECRET_KEY")
 
 # Enable or disable debugging. Don't use this in a production environment.
 DEBUG = True
@@ -106,7 +112,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images) settings.
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
+STATIC_ROOT = (BASE_DIR / "static_root")
 
 
 # Default primary key field type.
@@ -133,4 +139,40 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ]
+}
+
+# Logging configuration.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": env("DJANGO_LOG_FILE"),
+            "level": env("DJANGO_LOG_LEVEL"),
+            "formatter": "verbose",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file"],
+            "level": env("DJANGO_LOG_LEVEL"),
+            "propagate": True,
+        },
+    },
 }
