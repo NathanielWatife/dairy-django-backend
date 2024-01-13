@@ -8,6 +8,8 @@ from health.models import (
     QuarantineRecord,
     Pathogen,
     Symptoms,
+    Disease,
+    Recovery,
 )
 
 
@@ -222,5 +224,69 @@ class SymptomsSerializer(serializers.ModelSerializer):
             "description",
             "date_observed",
             "severity",
-            "location"
+            "location",
+        )
+
+
+class DiseaseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Disease model.
+
+    Fields:
+    - `name`: The name of the disease.
+    - `pathogen`: The pathogen causing the disease.
+    - `category`: The category of the disease.
+    - `date_reported`: Date when the disease was reported.
+    - `occurrence_date`: Date when the disease occurred.
+    - `notes`: Additional notes about the disease (nullable).
+    - `cows`: Cows affected by the disease.
+    - `symptoms`: Symptoms associated with the disease.
+
+    Meta:
+    - `model`: The Disease model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Note: The `cows` and `symptoms` fields are represented by their primary keys in the serialized data.
+
+    """
+
+    class Meta:
+        model = Disease
+        fields = (
+            "name",
+            "pathogen",
+            "category",
+            "date_reported",
+            "occurrence_date",
+            "notes",
+            "cows",
+            "symptoms",
+        )
+
+
+class RecoverySerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Recovery model.
+
+    Fields:
+    - `cow`: The cow recovering from the disease.
+    - `disease`: The disease from which the cow is recovering.
+    - `diagnosis_date`: Date when the disease was diagnosed.
+    - `recovery_date`: Date when the cow recovered (nullable).
+
+    Meta:
+    - `model`: The Recovery model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Note: The `cow` and `disease` fields are represented by their primary keys in the serialized data.
+
+    """
+
+    class Meta:
+        model = Recovery
+        fields = (
+            "cow",
+            "disease",
+            "diagnosis_date",
+            "recovery_date"
         )
