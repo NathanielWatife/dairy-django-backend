@@ -286,3 +286,27 @@ class SymptomValidator:
                 "For respiratory symptoms, the location must be Chest, Neck, Head, or Whole Body.",
                 code="incompatible_type_and_location"
             )
+
+
+class DiseaseValidator:
+    """
+    Validator class for validating disease-related logic.
+
+    Methods:
+    - `validate_date`: Validate the occurrence date of a disease.
+    """
+
+    @staticmethod
+    def validate_date(occurrence_date):
+        """
+        Validate the occurrence date of a disease.
+
+        Parameters:
+        - `occurrence_date`: Date when the disease occurred.
+
+        Raises:
+        - `ValidationError` (code: `invalid_occurrence_date`):
+            If the occurrence date is in the future.
+        """
+        if occurrence_date > todays_date:
+            raise ValidationError("Occurrence date cannot be in the future.", code="invalid_occurrence_date")

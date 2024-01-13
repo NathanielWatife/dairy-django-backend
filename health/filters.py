@@ -1,6 +1,12 @@
 from django_filters import rest_framework as filters
 
-from health.models import WeightRecord, CullingRecord, QuarantineRecord
+from health.models import (
+    WeightRecord,
+    CullingRecord,
+    QuarantineRecord,
+    Disease,
+    Recovery,
+)
 
 
 class WeightRecordFilterSet(filters.FilterSet):
@@ -118,3 +124,69 @@ class QuarantineRecordFilterSet(filters.FilterSet):
             "start_date",
             "end_date",
         ]
+
+
+class DiseaseFilterSet(filters.FilterSet):
+    """
+    Filter set for querying Disease instances based on specific criteria.
+
+    Filters:
+    - `cows`: A filter for cows related to the disease (case-insensitive contains).
+    - `pathogen`: A filter for the pathogen causing the disease (case-insensitive contains).
+    - `category`: A filter for the disease category (case-insensitive contains).
+    - `occurrence_date`: A filter for the occurrence date of the disease (case-insensitive contains).
+
+    Meta:
+    - `model`: The Disease model for which the filter set is defined.
+    - `fields`: The fields available for filtering, including 'cows', 'pathogen', 'category', and 'occurrence_date'.
+
+    Usage:
+        Use this filter set to apply filters when querying the list of Disease instances.
+        For example, to retrieve all diseases related to a specific cow.
+
+    Example:
+        ```
+        /api/diseases/?cows=some_cow
+        ```
+    """
+
+    cows = filters.CharFilter(field_name="cows", lookup_expr="icontains")
+    pathogen = filters.CharFilter(field_name="pathogen", lookup_expr="icontains")
+    category = filters.CharFilter(field_name="category", lookup_expr="icontains")
+    occurrence_date = filters.CharFilter(
+        field_name="occurrence_date", lookup_expr="icontains"
+    )
+
+    class Meta:
+        model = Disease
+        fields = ["cows", "pathogen", "category", "occurrence_date"]
+
+
+class RecoveryFilterSet(filters.FilterSet):
+    """
+    Filter set for querying Recovery instances based on specific criteria.
+
+    Filters:
+    - `cow`: A filter for cows recovering from a disease (case-insensitive contains).
+    - `disease`: A filter for the disease from which cows are recovering (case-insensitive contains).
+
+    Meta:
+    - `model`: The Recovery model for which the filter set is defined.
+    - `fields`: The fields available for filtering, including 'cow' and 'disease'.
+
+    Usage:
+        Use this filter set to apply filters when querying the list of Recovery instances.
+        For example, to retrieve all recovery records for a specific cow.
+
+    Example:
+        ```
+        /api/disease-recoveries/?cow=some_cow
+        ```
+    """
+
+    cow = filters.CharFilter(field_name="cow", lookup_expr="icontains")
+    disease = filters.CharFilter(field_name="disease", lookup_expr="icontains")
+
+    class Meta:
+        model = Recovery
+        fields = ["cow", "disease"]

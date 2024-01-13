@@ -1,6 +1,10 @@
+import datetime
+
 from django.db import models
+from django.utils import timezone
 
 from core.models import Cow
+from core.utils import todays_date
 from health.choices import (
     CullingReasonChoices,
     QuarantineReasonChoices,
@@ -16,6 +20,7 @@ from health.validators import (
     QuarantineValidator,
     DiseaseCategoryValidator,
     SymptomValidator,
+    DiseaseValidator,
 )
 
 
@@ -253,3 +258,70 @@ class Symptoms(models.Model):
         """
         self.clean()
         super().save(*args, **kwargs)
+
+
+class Disease(models.Model):
+    """
+    Represents diseases in cows.
+
+    Attributes:
+    - `name` (str): The name of the disease.
+    - `pathogen` (ForeignKey): The pathogen causing the disease.
+    - `category` (ForeignKey): The category of the disease.
+    - `date_reported` (date): Date when the disease was reported.
+    - `occurrence_date` (date): Date when the disease occurred.
+    - `notes` (str): Additional notes about the disease (nullable).
+    - `cows` (ManyToManyField): Cows affected by the disease.
+    - `symptoms` (ManyToManyField): Symptoms associated with the disease.
+
+    Methods:
+    - `clean`: Validates the attributes of the disease.
+    """
+
+    name = models.CharField(max_length=50)
+    pathogen = models.ForeignKey(Pathogen, on_delete=models.PROTECT)
+    category = models.ForeignKey(
+        DiseaseCategory, on_delete=models.PROTECT, related_name="diseases"
+    )
+    date_reported = models.DateField(auto_now_add=True)
+    occurrence_date = models.DateField()
+    notes = models.TextField(null=True)
+    cows = models.ManyToManyField(Cow, related_name="diseases")
+    symptoms = models.ManyToManyField(Symptoms, related_name="diseases")
+
+    def __str__(self):
+        return f"{self.name} ({self.pathogen.name}) occurred on {self.occurrence_date}"
+
+    def clean(self):
+        DiseaseValidator.validate_date(self.occurrence_date)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to perform additional validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class Recovery(models.Model):
+    """
+    Represents the recovery status of a cow from a specific disease.
+
+    Attributes:
+    - `cow` (ForeignKey): The cow recovering from the disease.
+    - `disease` (ForeignKey): The disease from which the cow is recovering.
+    - `diagnosis_date` (date): Date when the disease was diagnosed.
+    - `recovery_date` (date): Date when the cow recovered (nullable).
+    """
+
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name="recoveries")
+    disease = models.ForeignKey(
+        Disease, on_delete=models.CASCADE, related_name="recoveries"
+    )
+    diagnosis_date = models.DateField()
+    recovery_date = models.DateField(null=True)
+
+    def __str__(self):
+        if self.recovery_date:
+            return f"{self.cow.tag_number} recovered from {self.disease.name} on {self.recovery_date}"
+        return f"{self.cow.tag_number} not yet recovered from {self.disease.name}"
