@@ -8,6 +8,8 @@ from health.views import (
     CullingRecordViewSet,
     QuarantineRecordViewSet,
     PathogenViewSet,
+    DiseaseViewSet,
+    RecoveryViewSet,
 )
 
 app_name = 'health'
@@ -19,6 +21,8 @@ router.register(r'quarantine-records', QuarantineRecordViewSet, basename='quaran
 router.register(r'pathogens', PathogenViewSet, basename='pathogens')
 router.register(r'disease-categories', DiseaseCategoryViewSet, basename='disease-categories')
 router.register(r'symptoms', SymptomsViewSet, basename='symptoms')
+router.register(r'diseases', DiseaseViewSet, basename='diseases')
+router.register(r'disease-recoveries', RecoveryViewSet, basename='disease-recoveries')
 
 urlpatterns = [
     path('', include(router.urls))
