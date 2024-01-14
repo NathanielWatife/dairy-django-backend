@@ -9,6 +9,7 @@ from health.choices import (
     SymptomLocationChoices,
     SymptomSeverityChoices,
     SymptomTypeChoices,
+    TreatmentStatusChoices,
 )
 from users.choices import SexChoices
 
@@ -234,16 +235,26 @@ class SymptomValidator:
             If any validation fails.
         """
         if date_observed > todays_date:
-            raise ValidationError("The date of observation cannot be in the future.", code="invalid_date_observed")
+            raise ValidationError(
+                "The date of observation cannot be in the future.",
+                code="invalid_date_observed",
+            )
 
         if symptom_type not in SymptomTypeChoices.values:
-            raise ValidationError(f"Invalid symptom type: ({symptom_type}).", code="invalid_symptom_type")
+            raise ValidationError(
+                f"Invalid symptom type: ({symptom_type}).", code="invalid_symptom_type"
+            )
 
         if severity not in SymptomSeverityChoices.values:
-            raise ValidationError(f"Invalid severity choice: ({severity}).", code="invalid_symptom_severity")
+            raise ValidationError(
+                f"Invalid severity choice: ({severity}).",
+                code="invalid_symptom_severity",
+            )
 
         if location not in SymptomLocationChoices.values:
-            raise ValidationError(f"Invalid body location: ({location}).", code="invalid_symptom_location")
+            raise ValidationError(
+                f"Invalid body location: ({location}).", code="invalid_symptom_location"
+            )
 
     @staticmethod
     def validate_name(name):
@@ -260,7 +271,7 @@ class SymptomValidator:
         if not name.replace(" ", "").isalpha():
             raise ValidationError(
                 "Symptoms name should only contain alphabetic characters (no numerics allowed).",
-                code="invalid_symptom_name"
+                code="invalid_symptom_name",
             )
 
     @staticmethod
@@ -284,7 +295,7 @@ class SymptomValidator:
         ]:
             raise ValidationError(
                 "For respiratory symptoms, the location must be Chest, Neck, Head, or Whole Body.",
-                code="incompatible_type_and_location"
+                code="incompatible_type_and_location",
             )
 
 
@@ -309,4 +320,53 @@ class DiseaseValidator:
             If the occurrence date is in the future.
         """
         if occurrence_date > todays_date:
-            raise ValidationError("Occurrence date cannot be in the future.", code="invalid_occurrence_date")
+            raise ValidationError(
+                "Occurrence date cannot be in the future.",
+                code="invalid_occurrence_date",
+            )
+
+
+class TreatmentValidator:
+    """
+    Validator class for validating treatment-related logic.
+
+    Methods:
+    - `validate_treatment_status`: Validate the treatment status based on various conditions.
+    """
+
+    @staticmethod
+    def validate_treatment_status(cow, treatment_status, notes, completion_date):
+        """
+        Validate the treatment status based on various conditions.
+
+        Parameters:
+        - `cow` (Cow): The cow for which treatment status is being validated.
+        - `treatment_status` (str): Status of the treatment.
+        - `notes` (str, nullable): Additional notes about the treatment.
+        - `completion_date` (date, nullable): Date when the treatment was completed.
+
+        Raises:
+        - `ValidationError` (codes: `missing_treatment_note`, `missing_completion_date`,
+          `invalid_treatment_status`, `invalid_availability_status`):
+            If any validation fails based on the specified conditions.
+        """
+        if treatment_status == TreatmentStatusChoices.CANCELLED and not notes:
+            raise ValidationError("A note is required when treatment status is cancelled.",
+                                  code="missing_treatment_note")
+
+        if treatment_status == TreatmentStatusChoices.POSTPONED and not notes:
+            raise ValidationError("A note is required when treatment status is postponed.",
+                                  code="missing_treatment_note")
+
+        if (treatment_status in [TreatmentStatusChoices.CANCELLED, TreatmentStatusChoices.COMPLETED]
+                and not completion_date):
+            raise ValidationError("Completion date is required for cancelled or completed treatments.",
+                                  code="missing_completion_date")
+
+        if cow.availability_status == CowAvailabilityChoices.DEAD:
+            raise ValidationError("Treatment cannot be given to a dead cow.",
+                                  code="invalid_availability_status")
+
+        if cow.availability_status == CowAvailabilityChoices.SOLD:
+            raise ValidationError("Unavailable cow, this cow has been sold.",
+                                  code="invalid_availability_status")
