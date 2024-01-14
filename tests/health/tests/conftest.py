@@ -18,8 +18,10 @@ from health.choices import (
     SymptomTypeChoices,
     PathogenChoices,
     DiseaseCategoryChoices,
+    TreatmentStatusChoices,
 )
 from health.models import Pathogen, DiseaseCategory, Symptoms
+from health.serializers import DiseaseSerializer
 
 from users.choices import SexChoices
 from core.utils import todays_date
@@ -279,3 +281,61 @@ def setup_disease_data():
         "symptoms": [symptom.id],
     }
     return disease_data
+
+
+@pytest.fixture
+def setup_treatment_data():
+    pathogen = Pathogen.objects.create(name=PathogenChoices.UNKNOWN)
+    disease_category = DiseaseCategory.objects.create(
+        name=DiseaseCategoryChoices.NUTRITION
+    )
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=650),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.PREGNANT,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.PREGNANT_NOT_LACTATING,
+    }
+
+    serializer1 = CowSerializer(data=general_cow)
+    serializer2 = CowSerializer(data=general_cow)
+    assert serializer1.is_valid()
+    assert serializer2.is_valid()
+    cow1 = serializer1.save()
+    cow2 = serializer2.save()
+
+    symptom_data = {
+        "name": "Fever",
+        "symptom_type": SymptomTypeChoices.RESPIRATORY,
+        "date_observed": todays_date,
+        "severity": SymptomSeverityChoices.MILD,
+        "location": SymptomLocationChoices.WHOLE_BODY,
+    }
+
+    symptom = Symptoms.objects.create(**symptom_data)
+
+    disease_data = {
+        "name": "Brucellosis",
+        "pathogen": pathogen.id,
+        "category": disease_category.id,
+        "occurrence_date": todays_date,
+        "cows": [cow1.id, cow2.id],
+        "symptoms": [symptom.id],
+    }
+    serializer3 = DiseaseSerializer(data=disease_data)
+    serializer3.is_valid()
+    disease = serializer3.save()
+
+    treatment_data = {
+        "disease": disease.id,
+        "cow": cow1.id,
+        "treatment_method": "Intravenous injection on the thighs",
+        "notes": "Fully treated cow",
+        "treatment_status": TreatmentStatusChoices.COMPLETED,
+        "completion_date": todays_date,
+    }
+
+    return treatment_data
