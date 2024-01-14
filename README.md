@@ -6,28 +6,58 @@
 ![GitHub Stars](https://img.shields.io/github/stars/AgriCodeHub/dairy-django-backend)
 ![Pytest](https://img.shields.io/badge/tests-pytest-green)
 
-
 ## Overview
 
-Welcome to the Dairy Django Backend repository! This project aims to develop a robust backend system for managing a dairy farm. The initial focus will be on implementing user authentication and role-based access control to ensure secure and efficient farm management.
+Welcome to the Dairy Django Backend repository! This project aims to develop a robust backend system for managing a dairy farm. The system includes modules for user authentication, role-based access control, core dairy logic, health monitoring, production records, inventory management, sales, and feeds.
 
 ## Features
 
 ### 1. User Authentication
 
-Implementing a secure user authentication system to manage access to the farm's backend. Users will be able to create accounts, log in securely, and maintain the confidentiality of their data.
+Implementing a secure user authentication system to manage access to the farm's backend. Users can create accounts, log in securely, and maintain the confidentiality of their data.
 
 ### 2. Role-Based Access Control
 
-Introducing role-based access control to assign specific roles to users based on their responsibilities in the farm. This ensures that different team members have appropriate access levels, enhancing security and streamlining operations.
+Introducing role-based access control to assign specific roles to users based on their responsibilities on the farm. This ensures different team members have appropriate access levels, enhancing security and streamlining operations.
 
 ### 3. Core Models for Dairy Logic
 
-Added core models including the CowBreed model and the Cow model, capturing essential information about each cow. Validation checks and field definitions ensure data integrity and consistency.
+#### Core App (core):
+- **Cow Model:** Captures essential information about each cow.
+- **CowBreed Model:** Represents different breeds of cows.
 
-### 4. Future Features
+#### Health App (health):
+- **Disease Model:** Manages information related to diseases affecting cows.
+- **Treatment Model:** Records details about treatments administered to cows.
+- **Quarantine Model:** Tracks cows in quarantine.
+- **Symptom Model:** Stores information about symptoms associated with diseases.
+- **Pathogen Model:** Represents pathogens causing diseases.
+- **DiseaseCategory Model:** Categorizes different diseases.
+- **WeightRecord Model:** Records weight information of cows.
+- **CullingRecord Model:** Manages records of culling instances.
+- **Recovery Model:** Tracks recovery status of cows from specific diseases.
 
-Planned future features include Farm Inventory Management to further enhance the functionality of the Dairy Django Backend.
+#### Production App (production):
+- **Milk Model:** Records information related to milk production.
+- **Lactation Model:** Manages lactation details of cows.
+
+#### Reproduction App (reproduction):
+- **Pregnancy Model:** Tracks pregnancy details of cows.
+- **Heat Model:** Records information about the heat cycles of cows.
+- **Insemination Model:** Manages details about cow insemination.
+
+#### Inventory App (inventory):
+- **CowInventory Model:** Manages information about cows in the inventory.
+- **MilkInventory Model:** Tracks details related to milk inventory.
+
+### 4. Sales Logic
+
+Under development - planning to introduce models and logic for tracking milk sales, integrating with the Daraja API from Safaricom for payment processing.
+
+### 5. Feeds
+
+Under development - planning to introduce models and logic for managing feeds.
+
 
 
 ## Getting Started
