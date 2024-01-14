@@ -246,3 +246,37 @@ class SymptomLocationChoices(models.TextChoices):
     TAIL = "Tail"
     WHOLE_BODY = "Whole body"
     OTHER = "Other"
+
+
+class TreatmentStatusChoices(models.TextChoices):
+    """
+    Choices for the status of treatments given to cows.
+
+    Choices:
+    - `SCHEDULED`: Treatment is scheduled but not initiated.
+    - `IN_PROGRESS`: Treatment is currently in progress.
+    - `COMPLETED`: Treatment has been successfully completed.
+    - `CANCELLED`: Treatment was cancelled before completion.
+    - `POSTPONED`: Treatment was postponed to a later date.
+
+    Usage:
+        These choices represent different statuses of treatments given to cows and are used as options
+        in the Treatment model.
+
+    Example:
+        ```
+        class Treatment(models.Model):
+            treatment_status = models.CharField(
+                max_length=15,
+                choices=TreatmentStatusChoices.choices,
+                default=TreatmentStatusChoices.SCHEDULED,
+            )
+        ```
+    """
+
+    SCHEDULED = "Scheduled"
+    IN_PROGRESS = "In Progress"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+    POSTPONED = "Postponed"
+
