@@ -10,6 +10,7 @@ from health.filters import (
     QuarantineRecordFilterSet,
     DiseaseFilterSet,
     RecoveryFilterSet,
+    TreatmentFilterSet,
 )
 from health.models import (
     DiseaseCategory,
@@ -20,6 +21,7 @@ from health.models import (
     Pathogen,
     Disease,
     Recovery,
+    Treatment,
 )
 from health.serializers import (
     DiseaseCategorySerializer,
@@ -30,6 +32,7 @@ from health.serializers import (
     PathogenSerializer,
     DiseaseSerializer,
     RecoverySerializer,
+    TreatmentSerializer,
 )
 from users.permissions import IsFarmManager, IsFarmOwner, IsAssistantFarmManager
 
@@ -408,6 +411,61 @@ class RecoveryViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 return Response(
                     {"detail": "No Disease Recovery records found."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TreatmentViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to handle operations related to cow treatments.
+
+    Provides CRUD functionality for cow treatments and supports filtering and ordering.
+
+    Actions:
+    - `list`: Get a list of all cow treatments with optional filtering and ordering.
+    - `retrieve`: Retrieve details of a specific cow treatment.
+    - `create`: Create a new cow treatment.
+    - `update`: Update an existing cow treatment.
+    - `partial_update`: Partially update an existing cow treatment.
+    - `destroy`: Delete an existing cow treatment.
+
+    Serializer class used for request/response data: `TreatmentSerializer`.
+    Filter class used for queryset filtering: `TreatmentFilterSet`.
+
+    Permissions:
+    - For 'list', 'retrieve', 'create', 'update', 'partial_update', 'destroy':
+      Accessible to farm managers and farm owners only.
+    """
+
+    queryset = Treatment.objects.all()
+    serializer_class = TreatmentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = TreatmentFilterSet
+    permission_classes = [IsFarmManager | IsFarmOwner]
+
+    def list(self, request, *args, **kwargs):
+        """
+        Get a list of all cow treatments with optional filtering and ordering.
+
+        Raises:
+        - `HTTP_404_NOT_FOUND`: If no cow treatment records match the provided filters.
+        - `HTTP_200_OK`: If cow treatment records are found.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {"detail": "No Treatment records found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Treatment records found."},
                     status=status.HTTP_200_OK,
                 )
 
