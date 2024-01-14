@@ -10,6 +10,7 @@ from health.views import (
     PathogenViewSet,
     DiseaseViewSet,
     RecoveryViewSet,
+    TreatmentViewSet,
 )
 
 app_name = 'health'
@@ -23,6 +24,7 @@ router.register(r'disease-categories', DiseaseCategoryViewSet, basename='disease
 router.register(r'symptoms', SymptomsViewSet, basename='symptoms')
 router.register(r'diseases', DiseaseViewSet, basename='diseases')
 router.register(r'disease-recoveries', RecoveryViewSet, basename='disease-recoveries')
+router.register(r'disease-treatments', TreatmentViewSet, basename='disease-treatments')
 
 urlpatterns = [
     path('', include(router.urls))
