@@ -10,6 +10,7 @@ from health.models import (
     Symptoms,
     Disease,
     Recovery,
+    Treatment,
 )
 
 
@@ -284,9 +285,37 @@ class RecoverySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recovery
+        fields = ("cow", "disease", "diagnosis_date", "recovery_date")
+
+
+class TreatmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Treatment model.
+
+    Fields:
+    - `disease`: The disease for which the cow is receiving treatment.
+    - `cow`: The cow undergoing treatment.
+    - `date_of_treatment`: Date when the treatment was initiated.
+    - `treatment_method`: Description of the treatment method (max length: 300).
+    - `notes`: Additional notes about the treatment (nullable).
+    - `treatment_status`: Status of the treatment.
+    - `completion_date`: Date when the treatment was completed (nullable).
+
+    Meta:
+    - `model`: The Treatment model for which the serializer is defined.
+    - `fields`: The fields to include in the serialized representation.
+
+    Note: The `disease` and `cow` fields are represented by their primary keys in the serialized data.
+    """
+
+    class Meta:
+        model = Treatment
         fields = (
-            "cow",
             "disease",
-            "diagnosis_date",
-            "recovery_date"
+            "cow",
+            "date_of_treatment",
+            "treatment_method",
+            "notes",
+            "treatment_status",
+            "completion_date"
         )

@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 
+from core.choices import CowAvailabilityChoices
 from core.models import Cow
 from core.utils import todays_date
 from health.choices import (
@@ -13,6 +14,7 @@ from health.choices import (
     SymptomSeverityChoices,
     SymptomTypeChoices,
     SymptomLocationChoices,
+    TreatmentStatusChoices,
 )
 from health.validators import (
     PathogenValidator,
@@ -21,6 +23,7 @@ from health.validators import (
     DiseaseCategoryValidator,
     SymptomValidator,
     DiseaseValidator,
+    TreatmentValidator,
 )
 
 
@@ -325,3 +328,57 @@ class Recovery(models.Model):
         if self.recovery_date:
             return f"{self.cow.tag_number} recovered from {self.disease.name} on {self.recovery_date}"
         return f"{self.cow.tag_number} not yet recovered from {self.disease.name}"
+
+
+class Treatment(models.Model):
+    """
+    Represents the treatment details for a cow diagnosed with a specific disease.
+
+    Attributes:
+    - `disease` (ForeignKey): The disease for which the cow is receiving treatment.
+    - `cow` (ForeignKey): The cow undergoing treatment.
+    - `date_of_treatment` (date): Date when the treatment was initiated.
+    - `treatment_method` (str): Description of the treatment method (max length: 300).
+    - `notes` (str, nullable): Additional notes about the treatment.
+    - `treatment_status` (str): Status of the treatment (choices: 'Scheduled', 'In Progress', 'Completed').
+    - `completion_date` (date, nullable): Date when the treatment was completed.
+
+    Methods:
+    - `clean`: Validates the attributes of the treatment.
+    """
+
+    disease = models.ForeignKey(Disease, on_delete=models.PROTECT)
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    date_of_treatment = models.DateField(auto_now_add=True)
+    treatment_method = models.TextField(max_length=300)
+    notes = models.TextField(null=True)
+    treatment_status = models.CharField(
+        max_length=15,
+        choices=TreatmentStatusChoices.choices,
+        default=TreatmentStatusChoices.SCHEDULED,
+    )
+    completion_date = models.DateField(null=True)
+
+    def clean(self):
+        """
+        Validates the attributes of the treatment.
+
+        Raises:
+        - `ValidationError` (code: `invalid_treatment_status`):
+            If the treatment status is invalid based on the cow's current recovery status.
+        """
+        TreatmentValidator.validate_treatment_status(
+            self.cow, self.treatment_status, self.notes, self.completion_date
+        )
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to perform additional validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.completion_date:
+            return f"{self.cow.tag_number} completed treatment for {self.disease.name} on {self.completion_date}"
+        return f"{self.cow.tag_number} undergoing treatment for {self.disease.name}"

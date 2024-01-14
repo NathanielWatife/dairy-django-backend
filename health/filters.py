@@ -6,6 +6,7 @@ from health.models import (
     QuarantineRecord,
     Disease,
     Recovery,
+    Treatment,
 )
 
 
@@ -189,4 +190,34 @@ class RecoveryFilterSet(filters.FilterSet):
 
     class Meta:
         model = Recovery
+        fields = ["cow", "disease"]
+
+
+class TreatmentFilterSet(filters.FilterSet):
+    """
+    Filter set for querying Treatment instances based on specific criteria.
+
+    Filters:
+    - `cow`: A filter for cows undergoing treatment (case-insensitive contains).
+    - `disease`: A filter for the disease for which cows are receiving treatment (case-insensitive contains).
+
+    Meta:
+    - `model`: The Treatment model for which the filter set is defined.
+    - `fields`: The fields available for filtering, including 'cow' and 'disease'.
+
+    Usage:
+        Use this filter set to apply filters when querying the list of Treatment instances.
+        For example, to retrieve all treatment records for a specific cow.
+
+    Example:
+        ```
+        /api/diseases-treatments/?cow=cow
+        ```
+    """
+
+    cow = filters.CharFilter(field_name="cow", lookup_expr="icontains")
+    disease = filters.CharFilter(field_name="disease", lookup_expr="icontains")
+
+    class Meta:
+        model = Treatment
         fields = ["cow", "disease"]
